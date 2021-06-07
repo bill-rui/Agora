@@ -49,6 +49,7 @@ class Agora {
   void Start();  /// The main Agora event loop
   void Stop();
   void GetEqualData(float** ptr, int* size);
+  printf("hello");
 
   // Flags that allow developer control over Agora internals
   struct {
