@@ -8,8 +8,8 @@ int addition(int a, int b){
 
 int main() {
     std::cout << "Hello World!"<<std::endl;
-    int a = 100;
+    int apple = 100;
     std::string s = "hi";
-    std::cout << addition(a, a) << std::endl;
+    std::cout << addition(apple, apple) << std::endl;
 }
 
