@@ -20,7 +20,7 @@
      "BGGGGGPPGGUUUG"
  ],
  "hw_framer": false,
- "tx_advance" : [140],
+ "tx_advance" : [140,140],
  "UE" : true,
  "client_ul_pilot_syms" : 1,
  "worker_thread_num" : 2,
