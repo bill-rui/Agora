@@ -2,7 +2,7 @@
  "irises" : "data/user-iris-serials.txt",
  "cells" : 1,
  "channel" : "A",
- "frequency" : 3.6e9,
+ "frequency" : 3.56e9,
  "single_gain": false,
  "rx_gain_a" : 21,
  "tx_gain_a" : 40,
@@ -22,7 +22,8 @@
  "hw_framer": false,
  "tx_advance" : [140],
  "UE" : true,
- "client_ul_pilot_syms" : 1,
+ "client_ul_pilot_syms" : 2,
  "worker_thread_num" : 2,
+ "core_offset" : 1,
  "demul_block_size" : 48
 }
