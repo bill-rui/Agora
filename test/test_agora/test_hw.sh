@@ -1,9 +1,16 @@
-#run script in Agora's top-level directory
+# run script in Agora's top-level directory
+# test_hw.sh [client output file] [base station output file]
 #!/bin/bash
 
-source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64
-ue_out_file="./test/test_agora/client.txt"
-bs_out_file="./test/test_agora/base_station.txt"
+ue_out_file=$1
+bs_out_file=$2
+threshold=$3
+
+if [ -z "$3" ]; then
+{
+    threshold="0.005"
+}
+fi
 
 echo "==========================================="
 echo "Build cmake... with -DUSE_ARGOS=on -DUSE_UHD=off"
@@ -29,7 +36,7 @@ echo "==========================================="
 echo -e "-------------------------------------------------------\n\n\n"
 
 for i in 1 2 3; do
-{  # try to start radio at msot three times
+{  # try to start radio at most three times
 
     ./build/user data/ue-ul-hw.json > $ue_out_file &
     pid=$!
@@ -58,3 +65,20 @@ echo "==========================================="
 echo "Starting base stations"
 echo "==========================================="
 ./build/agora data/bs-ul-hw.json > $bs_out_file &
+line=""
+tail -f -n0 $bs_out_file | grep -qe "Agora: terminating"
+
+# compare BER to threshold
+BER=$(grep "(BER)" $bs_out_file | grep -oE "[0-9]\.[0-9]*")
+echo ""
+echo "==========================================="
+echo "BER value: ${BER}"
+echo "threshold: ${threshold}"
+if (( $(echo "$BER > $threshold" | bc -l) )); then
+    echo "test failed"
+    else
+        echo "test successful"
+fi
+echo "==========================================="
+
+exit
