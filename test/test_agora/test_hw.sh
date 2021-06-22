@@ -1,5 +1,5 @@
 # run script in Agora's top-level directory
-# test_hw.sh [client output file] [base station output file]
+# test_hw.sh [client output file] [base station output file] [threshold BER value]
 #!/bin/bash
 
 ue_out_file=$1
