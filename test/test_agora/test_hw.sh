@@ -69,7 +69,7 @@ echo "==========================================="
 tail -f -n0 $bs_out_file | grep -qe "Agora: terminating"
 
 # compare BER to THRESHOLD
-BER=$(grep "(BER)" $bs_out_file | grep -oE "[0-9]\.[0-9]*")
+BER=$(grep "(BER)" $bs_out_file | grep -oE "[0-9]\.[0-9]*" | head -n 1)
 echo ""
 echo "==========================================="
 echo "BER value: ${BER}"
