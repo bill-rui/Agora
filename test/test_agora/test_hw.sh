@@ -1,14 +1,15 @@
 # run script in Agora's top-level directory
-# test_hw.sh [client output file] [base station output file] [threshold BER value]
+# test_hw.sh [output file] [threshold BER value (0.005 by default)]
 #!/bin/bash
 
-ue_out_file=$1
-bs_out_file=$2
-threshold=$3
+ue_out_file="./ue_out.txt"
+bs_out_file="./bs_out.txt"
+OUT_FILE=$1
+THRESHOLD=$2
 
 if [ -z "$3" ]; then
 {
-    threshold="0.005"
+    THRESHOLD="0.005"
 }
 fi
 
@@ -65,20 +66,33 @@ echo "==========================================="
 echo "Starting base stations"
 echo "==========================================="
 ./build/agora data/bs-ul-hw.json > $bs_out_file &
-line=""
 tail -f -n0 $bs_out_file | grep -qe "Agora: terminating"
 
-# compare BER to threshold
+# compare BER to THRESHOLD
 BER=$(grep "(BER)" $bs_out_file | grep -oE "[0-9]\.[0-9]*")
 echo ""
 echo "==========================================="
 echo "BER value: ${BER}"
-echo "threshold: ${threshold}"
-if (( $(echo "$BER > $threshold" | bc -l) )); then
+echo "THRESHOLD: ${THRESHOLD}"
+if (( $(echo "$BER > $THRESHOLD" | bc -l) )); then
     echo "test failed"
     else
         echo "test successful"
 fi
 echo "==========================================="
+
+echo "===========================================" > $OUT_FILE
+echo "User output" >> $OUT_FILE
+echo "===========================================" >> $OUT_FILE
+cat $ue_out_file >> $OUT_FILE
+echo -e "-------------------------------------------------------\n\n\n" >> $OUT_FILE
+
+echo "===========================================" >> $OUT_FILE
+echo "Base station output" >> $OUT_FILE
+echo "===========================================" >> $OUT_FILE
+cat $bs_out_file >> $OUT_FILE
+
+rm $bs_out_file
+rm $ue_out_file
 
 exit
