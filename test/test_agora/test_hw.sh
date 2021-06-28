@@ -40,7 +40,7 @@ for i in 1 2 3; do
 {  # try to start radio at most three times
 
     ./build/user data/ue-ul-hw.json > $ue_out_file &
-    pid=$!
+    pid_ue=$!
     sleep 1
     timeout 8 tail -f -n0 $ue_out_file | grep -qe "radio start done!"
     if [ $? != 0 ]; then
@@ -48,13 +48,14 @@ for i in 1 2 3; do
             echo "==========================================="
             echo "cannot start radio, exiting..."
             echo "==========================================="
-            kill $pid >/dev/null
+            kill $pid_ue >/dev/null
+            rm $ue_out_file
             exit
         fi
         echo "==========================================="
         echo "radio did not start, trying again..."
         echo "===========================================" 
-        kill $pid >/dev/null
+        kill $pid_ue >/dev/null
         else
             sleep 2
             break
@@ -66,6 +67,7 @@ echo "==========================================="
 echo "Starting base stations"
 echo "==========================================="
 ./build/agora data/bs-ul-hw.json > $bs_out_file &
+pid_bs=$!
 tail -f -n0 $bs_out_file | grep -qe "Agora: terminating"
 
 # compare BER to THRESHOLD
@@ -94,5 +96,8 @@ cat $bs_out_file >> $OUT_FILE
 
 rm $bs_out_file
 rm $ue_out_file
+
+kill $pid_ue >/dev/null
+kill $pid_bs >/dev/null
 
 exit
