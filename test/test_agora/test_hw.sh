@@ -1,5 +1,6 @@
 # run script in Agora's top-level directory
 # test_hw.sh [output file] [threshold BER value (0.005 by default)]
+# exit code 20 indicate BER is over the threshold
 #!/bin/bash
 
 ue_out_file="./ue_out.txt"
@@ -78,8 +79,10 @@ echo "BER value: ${BER}"
 echo "THRESHOLD: ${THRESHOLD}"
 if (( $(echo "$BER > $THRESHOLD" | bc -l) )); then
     echo "test failed"
+    exit_code=20
     else
         echo "test successful"
+        exit_code=0
 fi
 echo "==========================================="
 
@@ -100,4 +103,4 @@ rm $ue_out_file
 kill $pid_ue >/dev/null
 kill $pid_bs >/dev/null
 
-exit
+exit $exit_code
