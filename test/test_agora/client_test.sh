@@ -59,3 +59,5 @@ for i in 1 2 3; do
             break
     fi
 } done
+
+kill $pid_ue >/dev/null
