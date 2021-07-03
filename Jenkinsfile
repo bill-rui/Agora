@@ -19,10 +19,13 @@ pipeline{
 					}
 				}				
 			}
-			node('Harrier'){
+		}
+		stage('copy data file'){
+			agent {label 'Harrier'}
+			steps{
 				dir('./data'){
 					unstash 'orig_data_512_ant2.bin'
-				}
+				}	
 			}
 		}
 	}
