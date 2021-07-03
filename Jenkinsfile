@@ -30,5 +30,11 @@ pipeline{
 				}	
 			}
 		}
+		stage('start UE'){
+			agent {label "Falcon"}
+			steps{
+				sh './test/jenkins_test/start_ue.sh'
+			}
+		}
 	}
 }
