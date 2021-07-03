@@ -3,18 +3,16 @@ pipeline{
 	stages{
 		stage('Build'){
 			parallel{
-				stage('build on controller'){
+				stage('build on UE'){
 					agent {label 'Falcon'}
 					steps{
 						sh './test/jenkins_test/build_ue.sh'
 						dir('./data'){
-							script{
-								stash includes: 'orig_data_512_ant2.bin', name 'data_file'
-							}						
+							stash includes: 'orig_data_512_ant2.bin', name: 'repo_root'						
 						}					
 					}
 				}
-				stage("build on agent"){
+				stage("build on BS"){
 					agent {label 'Harrier'}
 					steps{
 						sh './test/jenkins_test/build_bs.sh'
