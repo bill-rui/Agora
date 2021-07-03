@@ -7,7 +7,7 @@ pipeline{
 					agent {label 'Falcon'}
 					steps{
 						sh './test/jenkins_test/build_ue.sh'
-						dir(./data){
+						dir('./data'){
 							stash includes: 'orig_data_512_ant2.bin', name 'data_file'
 						}					
 					}
@@ -22,7 +22,7 @@ pipeline{
 			stage('copy data file'){
 				agent {label 'Harrier'}
 				steps{
-					dir(./data){
+					dir('./data'){
 						unstash 'data_file'
 					}
 				}
