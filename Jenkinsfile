@@ -1,7 +1,7 @@
 pipeline{
 	agent none
 	stages{
-		stage('Run Build'){
+		stage{
 			parallel{
 				stage('build on controller'){
 					agent {label 'Falcon'}
@@ -16,6 +16,17 @@ pipeline{
 					}
 				}				
 			}
+			
+			stage{
+					agent {label 'Falcon'}
+					dir('./data'){
+						stash includes: 'orig_data_512_ant2.bin', name 'data_file'
+					}
+					agent {label 'Harrier'}
+					dir('./data'){
+						unstash 'data_file'
+					}
+				}
 		}
 	}
 }
