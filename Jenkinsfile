@@ -10,12 +10,6 @@ pipeline{
 						dir('./data'){
 							stash includes: 'LDPC_orig_dl_data_512_ant1.bin', name: 'dl_file'
 							stash includes: 'LDPC_orig_ul_data_512_ant1.bin', name: 'ul_file'
-						}
-						script{
-							node(label 'Harrier'){
-								unstash 'dl_file'
-								unstash 'ul_file'
-							}
 						}					
 					}
 				}
@@ -27,8 +21,6 @@ pipeline{
 				}				
 			}
 		}
-
-		/**
 		stage('copy data file'){
 			agent {label 'Harrier'}
 			steps{
@@ -38,6 +30,5 @@ pipeline{
 				}	
 			}
 		}
-		**/
 	}
 }
