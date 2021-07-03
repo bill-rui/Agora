@@ -12,7 +12,7 @@ for i in 1 2 3; do
             echo "==========================================="
             kill $pid_ue >/dev/null
             rm $ue_out_file
-            exit 
+            exit 20
         fi
         echo "==========================================="
         echo "radio did not start, trying again..."
