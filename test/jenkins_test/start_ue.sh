@@ -1,3 +1,4 @@
+ue_out_file='test/jenkins_test/ue_out.txt'
 for i in 1 2 3; do
 {  # try to start radio at most three times
 
@@ -23,3 +24,4 @@ for i in 1 2 3; do
             break
     fi
 } done
+rm $ue_out_file
