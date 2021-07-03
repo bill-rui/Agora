@@ -19,6 +19,11 @@ pipeline{
 					}
 				}				
 			}
+			node('Harrier'){
+				dir('./data'){
+					unstash 'orig_data_512_ant2.bin'
+				}
+			}
 		}
 	}
 }
