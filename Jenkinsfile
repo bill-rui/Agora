@@ -19,15 +19,6 @@ pipeline{
 					}
 				}				
 			}
-			stage('copy data file'){
-				agent {label 'Harrier'}
-				steps{
-					dir('./data'){
-						//unstash 'data_file'
-					}
-				}
-				
-			}
 		}
 	}
 }
