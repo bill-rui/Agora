@@ -8,7 +8,7 @@ pipeline{
 					steps{
 						sh './test/jenkins_test/build_ue.sh'
 						dir('./data'){
-							sh 'echo "hello"'
+							stash 'orig_data_512_ant2.bin'
 						}					
 					}
 				}
