@@ -30,5 +30,19 @@ pipeline{
 				}	
 			}
 		}
+		stage('start radios'){
+			environment{
+				UE_STARTED = 'false'
+				BS_TERMINATED = 'false'
+			}
+			parallel{
+				stage('start UE'){
+					sh '. test/jenkins_test/start_radio.sh -UE'
+				}
+				stage('start BS'){
+					sh '. test/jenkins_test/start_radio.sh -BS'
+				}
+			}
+		}
 	}
 }
