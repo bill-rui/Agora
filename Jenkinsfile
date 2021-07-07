@@ -37,10 +37,14 @@ pipeline{
 			}
 			parallel{
 				stage('start UE'){
-					sh '. test/jenkins_test/start_radio.sh -UE'
+					steps{
+						sh '. test/jenkins_test/start_radio.sh -UE'
+					}	
 				}
 				stage('start BS'){
-					sh '. test/jenkins_test/start_radio.sh -BS'
+					steps{
+						sh '. test/jenkins_test/start_radio.sh -BS'
+					}					
 				}
 			}
 		}
