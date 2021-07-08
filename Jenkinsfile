@@ -47,7 +47,7 @@ pipeline{
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
-						sh './test/jenkins_test/start_radio.sh -BS'
+						sh './test.sh'
 					}					
 				}
 			}
