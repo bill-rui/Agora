@@ -36,12 +36,14 @@ pipeline{
 				BS_TERMINATED = 'false'
 			}
 			parallel{
+				/**
 				stage('start UE'){
 					agent{label 'Falcon'}
 					steps{
-						//sh '. test/jenkins_test/start_radio.sh -UE'
+						sh '. test/jenkins_test/start_radio.sh -UE'
 					}	
 				}
+				**/
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
