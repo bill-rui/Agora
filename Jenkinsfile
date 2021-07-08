@@ -47,7 +47,7 @@ pipeline{
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
-						sh './test.sh'
+						sh '. test.sh'
 					}					
 				}
 			}
