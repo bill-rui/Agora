@@ -31,12 +31,6 @@ pipeline{
 			}
 		}
 		stage('start radios'){
-			/**
-			environment{
-				UE_STARTED = 'false'
-				BS_TERMINATED = 'false'
-			}
-			**/
 			parallel{
 				stage('start UE'){
 					agent{label 'Falcon'}

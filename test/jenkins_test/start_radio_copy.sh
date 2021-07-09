@@ -13,6 +13,16 @@ for i in 1 2 3; do
 {  # try to start radio at most three times
 
     if [ "$1" == "-BS" ]; then
+        i=0
+        while [ "$UE_STARTED" == "false" ]; do
+        {
+            if [ i == 10 ]; then
+                echo 'UE did not start, exiting...'
+                exit 20
+            fi
+            sleep 1
+            ((i++))
+        } done
         echo "==========================================="
         echo "starting base station"
         echo "==========================================="
