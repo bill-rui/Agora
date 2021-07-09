@@ -41,8 +41,6 @@ pipeline{
 					steps{
 						sh '''#!/bin/bash
 						. test/jenkins_test/start_radio.sh -UE
-						echo 'UE_STARTED VALUE============='
-						echo $UE_STARTED
 						'''
 					}	
 				}

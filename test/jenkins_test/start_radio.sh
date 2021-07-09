@@ -5,14 +5,8 @@ exit_code=0
 bs_out_file='test/jenkins_test/bs_out.txt'
 if [ "$1" == "-BS" ]; then
     out_file=$bs_out_file
-    echo "==========================================="
-    echo "starting base station"
-    echo "==========================================="
     else   
         out_file='test/jenkins_test/ue_out.txt'
-        echo "==========================================="
-        echo "starting user"
-        echo "==========================================="
 fi
 
 for i in 1 2 3; do
@@ -29,8 +23,14 @@ for i in 1 2 3; do
             sleep 1
             ((i++))
         } done
+        echo "==========================================="
+        echo "starting base station"
+        echo "==========================================="
         ./build/agora data/bs-ul-hw.json > $out_file &
-        else   
+        else
+            echo "==========================================="
+            echo "starting client"
+            echo "==========================================="
             ./build/user data/ue-ul-hw.json > $out_file &
     fi
 
