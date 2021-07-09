@@ -52,7 +52,7 @@ for i in 1 2 3; do
         kill $pid >/dev/null
         else
             if [ "$1" == "-UE" ]; then
-                export UE_STARTED='true'
+                export env.UE_STARTED='true'
             fi
             sleep 2
             break
