@@ -48,7 +48,7 @@ pipeline{
 					agent{label 'Harrier'}
 					steps{
 						sh '''
-						. test.sh
+						./test.sh
 						'''
 					}					
 				}
