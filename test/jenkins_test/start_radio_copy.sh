@@ -1,5 +1,6 @@
-# exit code 20 if start fails, 21 if timed out after radio start, 22 if can't find bs out file
 #!/bin/bash -el
+# exit code 20 if start fails, 21 if timed out after radio start, 22 if can't find bs out file
+
 source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
 exit_code=0
 bs_out_file='test/jenkins_test/bs_out.txt'
