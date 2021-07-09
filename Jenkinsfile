@@ -45,9 +45,7 @@ pipeline{
 							env.UE_STARTED = 'false'
 							env.BS_TERMINATED = 'false'
 						}
-						sh '''#!/bin/bash
-						. test/jenkins_test/start_radio_copy.sh -UE
-						'''
+						sh './test/jenkins_test/start_radio_copy.sh -UE'
 						script{
 							env.UE_STARTED = 'true'
 						}
@@ -56,10 +54,7 @@ pipeline{
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
-						sleep 8
-						sh '''#!/bin/bash
-						. test/jenkins_test/start_radio.sh -BS
-						'''
+						sh './test/jenkins_test/start_radio.sh -BS'
 					}					
 				}
 			}
