@@ -41,8 +41,10 @@ pipeline{
 				stage('start UE'){
 					agent{label 'Falcon'}
 					steps{
-						env.UE_STARTED = 'false'
-						env.BS_TERMINATED = 'false'
+						script{
+							env.UE_STARTED = 'false'
+							env.BS_TERMINATED = 'false'
+						}
 						sh '''#!/bin/bash
 						. test/jenkins_test/start_radio.sh -UE
 						'''
