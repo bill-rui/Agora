@@ -50,7 +50,9 @@ pipeline{
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
+						sleep 10
 						sh '''#!/bin/bash
+						echo $UE_STARTED
 						. test/jenkins_test/start_radio.sh -BS
 						'''
 					}					
