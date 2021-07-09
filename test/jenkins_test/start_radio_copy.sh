@@ -34,14 +34,13 @@ for i in 1 2 3; do
             echo "==========================================="
             kill $pid >/dev/null
             rm $out_file
-            export UE='false'
+            exit 20
         fi
         echo "==========================================="
         echo "radio did not start, trying again..."
         echo "===========================================" 
         kill $pid >/dev/null
         else
-            export UE='true'
             sleep 2
             break
     fi
