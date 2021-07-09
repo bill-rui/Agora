@@ -46,10 +46,13 @@ pipeline{
 							env.BS_TERMINATED = 'false'
 						}
 						sh '''#!/bin/bash
-						export UE_STARTED='true'
-						echo $UE_STARTED
-						. test/jenkins_test/start_radio.sh -UE
+						. test/jenkins_test/start_radio_copy.sh -UE
 						'''
+						script{
+							if ( UE == "true" ) {
+								env.UE_STARTED = 'true'
+							}
+						}
 					}	
 				}
 				stage('start BS'){
@@ -57,7 +60,6 @@ pipeline{
 					steps{
 						sleep 8
 						sh '''#!/bin/bash
-						echo $UE_STARTED
 						. test/jenkins_test/start_radio.sh -BS
 						'''
 					}					
