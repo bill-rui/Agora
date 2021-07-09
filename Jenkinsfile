@@ -40,6 +40,9 @@ pipeline{
 					agent{label 'Falcon'}
 					steps{
 						sh '''#!/bin/bash
+						echo $UE_STARTED
+						export UE_STARTED='true'
+						echo $UE_STARTED
 						. test/jenkins_test/start_radio.sh -UE
 						'''
 					}	
