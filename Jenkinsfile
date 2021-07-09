@@ -31,18 +31,19 @@ pipeline{
 			}
 		}
 		stage('start radios'){
+			/**
 			environment{
 				UE_STARTED = 'false'
 				BS_TERMINATED = 'false'
 			}
+			**/
 			parallel{
 				stage('start UE'){
 					agent{label 'Falcon'}
 					steps{
+						env.UE_STARTED = 'false'
+						env.BS_TERMINATED = 'false'
 						sh '''#!/bin/bash
-						echo $UE_STARTED
-						export UE_STARTED='true'
-						echo $UE_STARTED
 						. test/jenkins_test/start_radio.sh -UE
 						'''
 					}	
@@ -50,9 +51,8 @@ pipeline{
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
-						sleep 10
+						sleep 1
 						sh '''#!/bin/bash
-						echo $UE_STARTED
 						. test/jenkins_test/start_radio.sh -BS
 						'''
 					}					
