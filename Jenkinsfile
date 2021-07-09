@@ -46,6 +46,8 @@ pipeline{
 							env.BS_TERMINATED = 'false'
 						}
 						sh '''#!/bin/bash
+						export UE_STARTED='true'
+						echo $UE_STARTED
 						. test/jenkins_test/start_radio.sh -UE
 						'''
 					}	
