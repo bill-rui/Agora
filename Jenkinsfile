@@ -49,6 +49,7 @@ pipeline{
 						. test/jenkins_test/start_radio_copy.sh -UE
 						'''
 						script{
+							echo UE
 							if ( UE == "true" ) {
 								env.UE_STARTED = 'true'
 							}
