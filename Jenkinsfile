@@ -48,28 +48,8 @@ pipeline{
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
-						script{
-							try{
-								sh '''#!/bin/bash -el
-								source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
-								./build/agora data/bs-ul-hw.json'''
-							} catch(Exception e){
-								try{
-									sh '''#!/bin/bash -el
-									source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
-									./build/agora data/bs-ul-hw.json'''
-								} catch(Exception f){
-									try{
-										sh '''#!/bin/bash -el
-										source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
-										./build/agora data/bs-ul-hw.json'''
-									} catch(Exception g){
-										echo 'failed'
-									}
-								}						
-							}
-						}
-					}					
+						sh './test/jenkins_test/start_radio_copy.sh -BS'
+					}		
 				}
 			}
 		}
