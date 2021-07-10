@@ -3,8 +3,7 @@
 
 source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
 
-out_file='test/jenkins_test/bs_out.txt'
-
+echo $UE_STARTED
 while [ "$UE_STARTED" == "false" ]; do
 {
     if [ i == 10 ]; then
