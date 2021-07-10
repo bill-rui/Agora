@@ -5,6 +5,16 @@ source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh i
 
 out_file='test/jenkins_test/bs_out.txt'
 
+while [ "$UE_STARTED" == "false" ]; do
+{
+    if [ i == 10 ]; then
+        echo 'UE did not start, exiting...'
+        exit 20
+    fi
+    sleep 1
+    ((i++))
+} done
+
 for i in 1 2 3; do
 {  # try to start radio at most three times
     echo "==========================================="
