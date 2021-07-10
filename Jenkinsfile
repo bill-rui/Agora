@@ -54,10 +54,10 @@ pipeline{
 							} catch(Exception e){
 								try{
 									sh "./build/agora data/bs-ul-hw.json"
-								} catch(Exception e){
+								} catch(Exception f){
 									try{
 										sh "./build/agora data/bs-ul-hw.json"
-									} catch(Exception e){
+									} catch(Exception g){
 										echo 'failed'
 									}
 								}						
