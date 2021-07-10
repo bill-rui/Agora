@@ -27,7 +27,7 @@ for i in 1 2 3; do
         echo "==========================================="
         echo "starting base station"
         echo "==========================================="
-        ./build/agora data/bs-ul-hw.json &
+        ./build/agora data/bs-ul-hw.json > $out_file &
         else
             echo "==========================================="
             echo "starting client"
