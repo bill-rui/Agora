@@ -48,7 +48,21 @@ pipeline{
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
-						sh './test/jenkins_test/start_bs.sh'
+						script{
+							try{
+								sh "./build/agora data/bs-ul-hw.json"
+							} catch(Exception e){
+								try{
+									sh "./build/agora data/bs-ul-hw.json"
+								} catch(Exception e){
+									try{
+										sh "./build/agora data/bs-ul-hw.json"
+									} catch(Exception e){
+										echo 'failed'
+									}
+								}						
+							}
+						}
 					}					
 				}
 			}
