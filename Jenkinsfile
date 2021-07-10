@@ -50,13 +50,19 @@ pipeline{
 					steps{
 						script{
 							try{
-								sh "./build/agora data/bs-ul-hw.json"
+								sh '''#!/bin/bash -el
+								source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
+								./build/agora data/bs-ul-hw.json'''
 							} catch(Exception e){
 								try{
-									sh "./build/agora data/bs-ul-hw.json"
+									sh '''#!/bin/bash -el
+									source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
+									./build/agora data/bs-ul-hw.json'''
 								} catch(Exception f){
 									try{
-										sh "./build/agora data/bs-ul-hw.json"
+										sh '''#!/bin/bash -el
+										source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
+										/build/agora data/bs-ul-hw.json'''
 									} catch(Exception g){
 										echo 'failed'
 									}
