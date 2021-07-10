@@ -39,7 +39,7 @@ pipeline{
 							env.UE_STARTED = 'false'
 							env.BS_TERMINATED = 'false'
 						}
-						sh './test/jenkins_test/start_radio_copy.sh -UE'
+						sh './test/jenkins_test/start_ue.sh'
 						script{
 							env.UE_STARTED = 'true'
 						}
