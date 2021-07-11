@@ -50,7 +50,7 @@ pipeline{
 					agent{label 'Harrier'}
 					steps{
 						sh './test/jenkins_test/start_bs.sh'
-						echo "${UE_STARTED}"
+						echo "${env.UE_STARTED}"
 					}		
 				}
 			}
