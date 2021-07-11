@@ -43,7 +43,7 @@ pipeline{
 						script{
 							env.UE_STARTED = 'true'
 						}
-						echo $UE_STARTED
+						echo 'code reached'
 					}	
 				}
 				stage('start BS'){
