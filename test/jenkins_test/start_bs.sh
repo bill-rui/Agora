@@ -33,3 +33,11 @@ for i in 1 2 3; do
             break
     fi
 } done
+
+timeout 30 tail -f -n0 $out_file | grep -qe "Agora: terminating"
+if [ $? != 0 ]; then
+    echo "[Warning] Agora timed out, exiting..."
+    exit 21
+    else
+        exit
+fi
