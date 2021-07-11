@@ -30,31 +30,17 @@ pipeline{
 				}	
 			}
 		}
-		stage('start radios'){
-			parallel{
-				stage('start UE'){
-					agent{label 'Falcon'}
-					steps{
-						script{
-							env.UE_STARTED = 'false'
-							env.BS_TERMINATED = 'false'
-						}
-						sh './test/jenkins_test/start_ue.sh'
-						script{
-							env.UE_STARTED = 'true'
-						}
-						echo 'code reached'
-					}	
-				}
-				stage('start BS'){
-					agent{label 'Harrier'}
-					steps{
-						sleep 7
-						echo "${UE_STARTED}"
-						sh './test/jenkins_test/start_bs.sh'
-					}		
-				}
-			}
+		stage('start UE'){
+			agent{label 'Falcon'}
+			steps{
+				sh './test/jenkins_test/start_ue.sh'
+			}	
+		}
+		stage('start BS'){
+			agent{label 'Harrier'}
+			steps{
+				sh './test/jenkins_test/start_bs.sh'
+			}		
 		}
 	}
 }
