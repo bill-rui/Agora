@@ -49,8 +49,9 @@ pipeline{
 				stage('start BS'){
 					agent{label 'Harrier'}
 					steps{
+						sleep 7
+						echo "${UE_STARTED}"
 						sh './test/jenkins_test/start_bs.sh'
-						echo "${env.UE_STARTED}"
 					}		
 				}
 			}
