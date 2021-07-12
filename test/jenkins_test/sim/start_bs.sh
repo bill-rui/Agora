@@ -13,7 +13,7 @@ fi
 echo "==========================================="
 echo "starting receiver..."
 echo "==========================================="
-./build/agora --conf_file data/tddconfig-sim-ul.json &
+./build/agora --conf_file data/tddconfig-sim-ul.json > $out_file &
 pid=$!
 
 timeout 50 tail -f -n0 $out_file | grep -qe "Agora: terminating"

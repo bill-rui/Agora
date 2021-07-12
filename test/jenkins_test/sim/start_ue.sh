@@ -13,5 +13,5 @@ fi
 echo "==========================================="
 echo "starting sender..."
 echo "==========================================="
-./build/sender --num_threads=2 --core_offset=1 --frame_duration=5000 --enable_slow_start=1 --conf_file=data/tddconfig-sim-ul.json &
+./build/sender --num_threads=2 --core_offset=1 --frame_duration=5000 --enable_slow_start=1 --conf_file=data/tddconfig-sim-ul.json > $out_file &
 pid=$!
