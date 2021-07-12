@@ -2,7 +2,7 @@
 # exit code 20 if start fails, 21 if timed out after radio start, 22 if can't find bs out file
 
 source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
-out_file='test/jenkins_test/bs_out.txt'
+out_file='test/jenkins_test/sim/bs_out.txt'
 
 for i in 1 2 3; do
 {  # try to start radio at most three times
@@ -34,10 +34,11 @@ for i in 1 2 3; do
     fi
 } done
 
-timeout 30 tail -f -n0 $out_file | grep -qe "Agora: terminating"
-if [ $? != 0 ]; then
-    echo "[Warning] Agora timed out, exiting..."
-    exit 21
-    else
-        exit
-fi
+
+#timeout 30 tail -f -n0 $out_file | grep -qe "Agora: terminating"
+#if [ $? != 0 ]; then
+#    echo "[Warning] Agora timed out, exiting..."
+#    exit 21
+#    else
+#        exit
+#fi
