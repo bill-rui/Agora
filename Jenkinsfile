@@ -26,7 +26,7 @@ pipeline{
 						sh './test/jenkins_test/sim/start_ue.sh'
 					}	
 				}
-				stage('start BS'){
+				stage('start receiver'){
 					agent{label 'Falcon'}
 					steps{
 						sh './test/jenkins_test/sim/start_bs.sh'
