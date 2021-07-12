@@ -13,6 +13,7 @@ pipeline{
 					agent {label 'Falcon'}
 					steps{
 						sh './test/jenkins_test/sim/build.sh -BS'
+						sh './test/jenkins_test/sim/start_bs.sh'
 					}
 				}				
 			}
@@ -26,12 +27,12 @@ pipeline{
 						sh './test/jenkins_test/sim/start_ue.sh'
 					}	
 				}
-				stage('start receiver'){
+				/**stage('start receiver'){
 					agent{label 'Falcon'}
 					steps{
 						sh './test/jenkins_test/sim/start_bs.sh'
 					}
-				}
+				}**/
 			}
 		}
 	}
