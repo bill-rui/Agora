@@ -1,35 +1,17 @@
-#!/bin/bash -el
-# exit code 20 if start fails, 21 if timed out after radio start, 22 if can't find bs out file
+#!/bin/bash -l
+# start simulated uplink test on client (sender end)
+# run program in agora directory
+# default output file is in test/jenkins_test/sim/ue_out.txt, add argument to specify otherwise
 
 source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh intel64 > /dev/null
-exit_code=0
-out_file='test/jenkins_test/ue_out.txt'
+if [ -z "$1" ]; then
+    out_file='test/jenkins_test/sim/ue_out.txt'
+    else
+        out_file=$1
+fi
 
-for i in 1 2 3; do
-{  # try to start radio at most three times
-    echo "==========================================="
-    echo "starting client"
-    echo "==========================================="
-    ./build/user data/ue-ul-hw.json > $out_file &
-    pid=$!
-    export PID=$pid
-    sleep 1
-    timeout 5 tail -f -n0 $out_file | grep -qe "radio start done!"
-    if [ $? != 0 ]; then
-        if [ $i == 3 ]; then
-            echo "==========================================="
-            echo "cannot start radio, exiting..."
-            echo "==========================================="
-            kill $pid >/dev/null
-            rm $out_file
-            exit 20
-        fi
-        echo "==========================================="
-        echo "radio did not start, trying again..."
-        echo "===========================================" 
-        kill $pid >/dev/null
-        else
-            sleep 2
-            break
-    fi
-} done
+echo "==========================================="
+echo "starting sender..."
+echo "==========================================="
+./build/sender --num_threads=2 --core_offset=1 --frame_duration=5000 --enable_slow_start=1 --conf_file=data/tddconfig-sim-ul.json > $out_file
+pid=$!
