@@ -18,7 +18,7 @@ pipeline{
 				stage("build on receiver"){
 					agent {label 'Falcon'}
 					steps{
-						sh './test/jenkins_test/build_bs.sh'
+						sh './test/jenkins_test/sim/build.sh -BS'
 					}
 				}				
 			}
