@@ -23,13 +23,13 @@ pipeline{
 					agent{label 'Harrier'}
 					steps{
 						sleep 2  // wait for receiver to start first
-						sh './test/jenkins_test/start_ue.sh'
+						sh './test/jenkins_test/sim/start_ue.sh'
 					}	
 				}
 				stage('start BS'){
 					agent{label 'Falcon'}
 					steps{
-						sh './test/jenkins_test/start_bs.sh'
+						sh './test/jenkins_test/sim/start_bs.sh'
 					}
 				}
 			}
