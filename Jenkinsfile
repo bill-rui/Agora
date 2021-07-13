@@ -51,7 +51,7 @@ pipeline{
 		stage('BER test'){
 			agent{label 'Falcon'}
 			steps{
-				sh 'python3 ./test/jenkins_test/sim/compare_values.py -0.1'
+				sh 'python3 ./test/jenkins_test/sim/compare_values.py 0.01'
 			}
 		}
 
