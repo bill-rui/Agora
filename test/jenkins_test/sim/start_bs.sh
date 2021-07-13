@@ -13,5 +13,5 @@ fi
 echo "==========================================="
 echo "starting receiver..."
 echo "==========================================="
-./build/agora --conf_file data/tddconfig-sim-ul.json &
+./build/agora --conf_file data/tddconfig-sim-ul.json
 pid=$!
