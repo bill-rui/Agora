@@ -30,6 +30,7 @@ pipeline{
 					agent{label 'Falcon'}
 					steps{
 						sh './test/jenkins_test/sim/start_bs.sh'
+						sh 'pwd'
 					}
 				}
 			}
