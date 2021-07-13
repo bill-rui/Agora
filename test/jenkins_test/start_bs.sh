@@ -9,7 +9,7 @@ for i in 1 2 3; do
     echo "==========================================="
     echo "starting base station"
     echo "==========================================="
-    ./build/agora data/bs-ul-hw.json > $out_file &
+    ./build/agora data/bs-ul-hw.json &
 
     pid=$!
     export PID=$pid
