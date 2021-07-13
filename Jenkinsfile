@@ -22,7 +22,7 @@ pipeline{
 				stage('start sender'){
 					agent{label 'Harrier'}
 					steps{
-						sleep 2  // wait for receiver to start first
+						sleep 3  // wait for receiver to start first
 						sh './test/jenkins_test/sim/start_ue.sh'
 					}	
 				}
