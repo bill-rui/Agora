@@ -1,3 +1,6 @@
+"""
+pin processes of a user to a given set of cores
+"""
 import subprocess as s
 from optparse import OptionParser
 

@@ -15,3 +15,4 @@ echo "starting receiver..."
 echo "==========================================="
 ./build/agora --conf_file data/tddconfig-sim-ul.json > $out_file
 pid=$!
+cat $out_file | grep 'BER' > 'test/jenkins_test/sim/BER_values.txt'
