@@ -8,7 +8,6 @@ pipeline{
 	agent none
 	stages{
 		stage('Build'){  // build agora on Harrier and Falcon simultaneously
-			hide true
 			parallel{
 				stage('build on sender'){
 					agent {label 'Harrier'}
@@ -31,7 +30,6 @@ pipeline{
 			}
 		}
 		stage('start radios'){
-			hide true
 			parallel{
 				stage('start sender'){
 					agent{label 'Harrier'}
