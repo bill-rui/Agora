@@ -1,3 +1,9 @@
+'''
+compare the values from the BER value file to a threshold
+requires the first argument being the threshold to compare against
+raise ValueError("BER threshold exceeded") when test fails
+'''
+
 from optparse import OptionParser
 parser: OptionParser = OptionParser(usage="%prog [BER threshold]", 
                         description="get the BER values from an output file to compare to a threshold")

@@ -1,3 +1,8 @@
+/**
+* Jenkins file for running tests with real hardware on Falcon and Harrier.
+* requires build_ue.sh, build_bs.sh, start_ue.sh, and start_bs.sh in directory ./test/jenkins_test
+**/
+
 pipeline{
 	agent none
 	stages{
