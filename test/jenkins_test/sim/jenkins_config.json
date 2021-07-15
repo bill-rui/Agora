@@ -1,0 +1,5 @@
+{
+    "cmake_flags": [],
+    "run_in_sudo": true,
+    "radio_config": "data/tddconfig-sim-ul.json" 
+}

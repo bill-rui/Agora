@@ -6,7 +6,21 @@ source /opt/intel/compilers_and_libraries_2020.3.279/linux/bin/compilervars.sh i
 echo "==========================================="
 echo "Run cmake... ($1)"
 echo "==========================================="
-cmake -S ./ -B ./build
+# pass in flags from jenkins_config.json
+flags=()
+i=0
+config="./test/jenkins_test/sim/jenkins_config.json"
+
+current_flag=$(cat ${config} | jq ".cmake_flags[$i]")
+while [ "${current_flag}" != "null" ]; do
+    current_flag=${current_flag%\"}
+    flags+=${current_flag#\"}  
+    ((i+=1))
+    current_flag=$(cat ${config} | jq ".cmake_flags[$i]")
+done
+
+cmake ${flags[@]} -S ./ -B ./build 
+
 echo -e "-------------------------------------------------------\n\n\n"
 
 echo "==========================================="

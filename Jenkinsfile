@@ -35,7 +35,7 @@ pipeline{
 					agent{label 'Harrier'}
 					steps{
 						sleep 2  // wait for receiver to start first
-						sh './test/jenkins_test/sim/start_ue.sh'
+						sh 'sudo ./test/jenkins_test/sim/start_ue.sh'
 					}
 				}
 				stage('start receiver'){
@@ -47,7 +47,7 @@ pipeline{
 							unstash 'rx'
 							unstash 'tx'
 						}
-						sh './test/jenkins_test/sim/start_bs.sh'
+						sh 'sudo ./test/jenkins_test/sim/start_bs.sh'
 					}
 				}
 			}

@@ -42,18 +42,17 @@ pipeline{
 					steps{
 						script{
 							env.UE_STARTED = 'false'
-							env.BS_TERMINATED = 'false'
 						}
 						sh './test/jenkins_test/start_ue.sh'
 						script{
-							env.UE_STARTED = 'true'
+							env.UE_STARTED = 'true'  // mark the user as started
 						}
 					}	
 				}
 				stage('start BS'){
 					agent{label 'Falcon'}
 					steps{
-						script{
+						script{  // wait until the user side has started
 							while(env.UE_STARTED == 'false'){
 								sleep 1
 							}
