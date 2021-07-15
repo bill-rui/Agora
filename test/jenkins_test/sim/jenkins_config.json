@@ -1,5 +1,5 @@
 {
-    "cmake_flags": [],
+    "cmake_flags": ["-DUSE_DPDK=1", "-DUSE_MLX_NIC=0"],
     "run_in_sudo": true,
     "radio_config": "data/tddconfig-sim-ul.json" 
 }
