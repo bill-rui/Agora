@@ -17,5 +17,5 @@
   "core_offset": 12,
   "worker_thread_num": 1,
   "socket_thread_num": 1,
-  "frames_to_test": 5
+  "frames_to_test": 10000
 }
