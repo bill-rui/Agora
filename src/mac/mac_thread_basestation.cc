@@ -49,7 +49,7 @@ MacThreadBaseStation::MacThreadBaseStation(
   // TODO: See if it makes more sense to split up the UE's by port here for
   // client mode.
   size_t udp_server_port = cfg_->BsMacRxPort();
-  MLPD_INFO("MacThreadBaseStation: setting up udp server at port %zu\n",
+  MLPD_INFO("MacThreadBaseStation: setting up udp server_ at port %zu\n",
             udp_server_port);
   udp_server_ = std::make_unique<UDPServer>(
       udp_server_port, udp_pkt_len * kMaxUEs * kMaxPktsPerUE);

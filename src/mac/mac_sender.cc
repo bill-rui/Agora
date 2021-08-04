@@ -383,15 +383,16 @@ void* MacSender::DataUpdateThread(size_t tid) {
   std::ifstream tx_file;
   tx_file.open(data_filename_, (std::ifstream::in | std::ifstream::binary));
   assert(tx_file.is_open() == true);
+  auto server = std::make_unique<CustomServer>(5000, 1500, 1350);
 
   // Init the data buffers
-  while ((keep_running.load() == true) && (buffer_updates < kBufferInit)) {
+  while (keep_running.load() && (buffer_updates < kBufferInit)) {
     size_t tag = 0;
     if (data_update_queue_.try_dequeue(tag) == true) {
       for (size_t i = 0; i < cfg_->UeAntNum(); i++) {
         auto tag_for_ue = gen_tag_t::FrmSymUe(((gen_tag_t)tag).frame_id_,
                                               ((gen_tag_t)tag).symbol_id_, i);
-        UpdateTxBuffer(tx_file, tag_for_ue);
+        UpdateTxBuffer(server.get(), tag_for_ue);
       }
       buffer_updates++;
     }
@@ -401,13 +402,13 @@ void* MacSender::DataUpdateThread(size_t tid) {
   // Unlock the rest of the workers
   num_workers_ready_atomic.fetch_add(1);
   // Normal run loop
-  while (keep_running.load() == true) {
+  while (keep_running.load()) {
     size_t tag = 0;
     if (data_update_queue_.try_dequeue(tag) == true) {
       for (size_t i = 0; i < cfg_->UeAntNum(); i++) {
         auto tag_for_ue = gen_tag_t::FrmSymUe(((gen_tag_t)tag).frame_id_,
                                               ((gen_tag_t)tag).symbol_id_, i);
-        UpdateTxBuffer(tx_file, tag_for_ue);
+        UpdateTxBuffer(server.get(), tag_for_ue);
       }
     }
   }
@@ -415,11 +416,9 @@ void* MacSender::DataUpdateThread(size_t tid) {
   return nullptr;
 }
 
-void MacSender::UpdateTxBuffer(std::ifstream& read, gen_tag_t tag) {
+void MacSender::UpdateTxBuffer(CustomServer* read, gen_tag_t tag) {
   // Load a frames worth of data
   uint8_t* mac_packet_location = tx_buffers_[TagToTxBuffersIndex(tag)];
-
-  assert(read.is_open() == true);
 
   for (size_t i = 0; i < packets_per_frame_; i++) {
     auto* pkt = reinterpret_cast<MacPacket*>(mac_packet_location);
@@ -428,7 +427,8 @@ void MacSender::UpdateTxBuffer(std::ifstream& read, gen_tag_t tag) {
     pkt->ue_id_ = tag.ue_id_;
 
     // Read a MacPayload into the data section
-    read.read(pkt->data_, cfg_->MacPayloadLength());
+    read->WriteTo(&pkt->data_, cfg_->MacPayloadLength());
+    /*
     // Check for eof
     if (read.eof()) {
       std::printf(
@@ -438,6 +438,7 @@ void MacSender::UpdateTxBuffer(std::ifstream& read, gen_tag_t tag) {
       read.close();
       read.open(data_filename_, std::ifstream::in | std::ifstream::binary);
     }
+    */
     // TODO MacPacketLength should be the size of the mac packet but is not.
     mac_packet_location = mac_packet_location +
                           (cfg_->MacPacketLength() + MacPacket::kOffsetOfData);

@@ -44,7 +44,7 @@ void* MacReceiver::LoopRecv(size_t tid) {
   udp_server->MakeBlocking(1);
 
   // TODO: Should each UE have a rx port?
-  std::printf("MacReceiver: Set up UDP socket server listening to port %zu\n",
+  std::printf("MacReceiver: Set up UDP socket server_ listening to port %zu\n",
               server_tx_port_ + ue_id);
 
   // Create a rx buffer

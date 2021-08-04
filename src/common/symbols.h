@@ -271,14 +271,14 @@ static constexpr size_t kMacUserRemotePort = 9070;
 static constexpr size_t kMacUserLocalPort = 9170;
 
 // After receiving decoded codeblocks from the PHY (uplink at the
-// server, downlink at the client), we send UDP packets to kRemoteHostname
+// server_, downlink at the client), we send UDP packets to kRemoteHostname
 static constexpr char kMacRemoteHostname[] = "127.0.0.1";
 
-// Agora sends UDP packets for UE #i (uplink packets at the server) to
+// Agora sends UDP packets for UE #i (uplink packets at the server_) to
 // destination port kMacBaseRemotePort + i
 static constexpr size_t kMacBaseRemotePort = 8080;
 
-// Agora listens for UDP packets (downlink data packets at the server) at
+// Agora listens for UDP packets (downlink data packets at the server_) at
 // port kBaseLocalPort
 static constexpr size_t kMacBaseLocalPort = 8180;
 

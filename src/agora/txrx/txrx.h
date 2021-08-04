@@ -33,12 +33,12 @@
  * @brief Implementations of this class provide packet I/O for Agora.
  *
  * In the vanilla mode, this class provides socket or DPDK-based packet I/O to
- * Agora (running on the base station server or client) for communicating
+ * Agora (running on the base station server_ or client) for communicating
  * with simulated peers.
  *
  * In the "Argos" mode, this class provides SoapySDR-based communication for
- * Agora (running on the base station server or client) for communicating
- * with real wireless hardware peers (antenna hubs for the server, UE devices
+ * Agora (running on the base station server_ or client) for communicating
+ * with real wireless hardware peers (antenna hubs for the server_, UE devices
  * for the client).
  */
 class PacketTXRX {
@@ -121,7 +121,7 @@ class PacketTXRX {
 
 #if defined(USE_DPDK)
   uint32_t bs_rru_addr;     // IPv4 address of the simulator sender
-  uint32_t bs_server_addr;  // IPv4 address of the Agora server
+  uint32_t bs_server_addr;  // IPv4 address of the Agora server_
   struct rte_mempool* mbuf_pool;
 #endif
 

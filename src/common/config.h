@@ -614,7 +614,7 @@ class Config {
   // or channel simulator
   std::string bs_rru_addr_;
 
-  // IP address of the data source/sink server communicating with MAC (BS/UE)
+  // IP address of the data source/sink server_ communicating with MAC (BS/UE)
   std::string mac_remote_addr_;
 
   int bs_server_port_;  // Base UDP port used by BS to receive data

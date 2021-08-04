@@ -24,16 +24,16 @@
 #include <cstring> /* std::strerror, std::memset, std::memcpy */
 #include <stdexcept>
 
-/// Basic UDP server class based on OS sockets that supports receiving messages
+/// Basic UDP server_ class based on OS sockets that supports receiving messages
 class UDPServer {
  public:
   static const bool kDebugPrintUdpServerInit = true;
 
-  // Initialize a UDP server listening on this UDP port with socket buffer
+  // Initialize a UDP server_ listening on this UDP port with socket buffer
   // size = rx_buffer_size
   explicit UDPServer(uint16_t port, size_t rx_buffer_size = 0) : port_(port) {
     if (kDebugPrintUdpServerInit) {
-      std::printf("Creating UDP server listening at port %d\n", port);
+      std::printf("Creating UDP server_ listening at port %d\n", port);
     }
     sock_fd_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock_fd_ == -1) {
@@ -212,7 +212,7 @@ class UDPServer {
 
  private:
   /**
-   * @brief The UDP port to server is listening on
+   * @brief The UDP port to server_ is listening on
    */
   uint16_t port_;
   /**

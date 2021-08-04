@@ -316,7 +316,7 @@ void* ChannelSim::BsRxLoop(int tid) {
         std::make_unique<UDPServer>(local_port_id, sock_buf_size);
     client_bs_.at(socket_id) = std::make_unique<UDPClient>();
     std::printf(
-        "BS RX thread %d: set up UDP socket server listening to port %zu"
+        "BS RX thread %d: set up UDP socket server_ listening to port %zu"
         " with remote address %s:%zu\n",
         tid, local_port_id, bscfg_->BsServerAddr().c_str(),
         bscfg_->BsServerPort() + socket_id);
@@ -385,7 +385,7 @@ void* ChannelSim::UeRxLoop(int tid) {
     client_ue_.at(socket_id) = std::make_unique<UDPClient>();
 
     std::printf(
-        "UE RX thread %d: set up UDP socket server listening to port %zu"
+        "UE RX thread %d: set up UDP socket server_ listening to port %zu"
         " with remote address %s:%zu\n",
         tid, local_port_id, uecfg_->UeServerAddr().c_str(),
         uecfg_->UeServerPort() + socket_id);

@@ -61,7 +61,7 @@ Sender::Sender(Config* cfg, size_t socket_thread_num, size_t core_offset,
   ticks_wnd2_ = ticks_all_ * 15;
 
   MLPD_INFO(
-      "Initializing sender, sending to base station server at %s, frame "
+      "Initializing sender, sending to base station server_ at %s, frame "
       "duration = %.2f ms, slow start = %s\n",
       cfg->BsServerAddr().c_str(), frame_duration / 1000.0,
       enable_slow_start == 1 ? "yes" : "no");
@@ -103,11 +103,11 @@ Sender::Sender(Config* cfg, size_t socket_thread_num, size_t core_offset,
   int ret = inet_pton(AF_INET, cfg->BsRruAddr().c_str(), &bs_rru_addr_);
   RtAssert(ret == 1, "Invalid sender IP address");
   ret = inet_pton(AF_INET, cfg->BsServerAddr().c_str(), &bs_server_addr_);
-  RtAssert(ret == 1, "Invalid server IP address");
+  RtAssert(ret == 1, "Invalid server_ IP address");
 
   RtAssert(server_mac_addr_str.length() ==
                (cfg->DpdkNumPorts() * (kMacAddrBtyes + 1) - 1),
-           "Invalid length of server MAC address");
+           "Invalid length of server_ MAC address");
   sender_mac_addr_.resize(cfg->DpdkNumPorts());
   server_mac_addr_.resize(cfg->DpdkNumPorts());
 
@@ -120,7 +120,7 @@ Sender::Sender(Config* cfg, size_t socket_thread_num, size_t core_offset,
     ether_addr* parsed_mac = ether_aton(
         server_mac_addr_str.substr(port_id * (kMacAddrBtyes + 1), kMacAddrBtyes)
             .c_str());
-    RtAssert(parsed_mac != NULL, "Invalid server mac address");
+    RtAssert(parsed_mac != NULL, "Invalid server_ mac address");
     std::memcpy(&server_mac_addr_[port_id], parsed_mac, sizeof(ether_addr));
 
     ret = rte_eth_macaddr_get(port_id + cfg->DpdkPortOffset(),
@@ -368,7 +368,7 @@ void* Sender::WorkerThread(int tid) {
         assert((cfg_->GetSymbolType(tag.symbol_id_) == SymbolType::kPilot) ||
                (cfg_->GetSymbolType(tag.symbol_id_) == SymbolType::kUL));
 
-        // Send a message to the server. We assume that the server is running.
+        // Send a message to the server_. We assume that the server_ is running.
         Packet* pkt = socks_pkt_buf;
 #if defined(USE_DPDK)
         tx_mbufs[tag_id] = DpdkTransport::AllocUdp(

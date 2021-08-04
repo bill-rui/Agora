@@ -4,7 +4,7 @@ Agora is a complete software realization of real-time massive MIMO baseband proc
 
 Some highlights:
 
-* Agora currently supports 64x16 MU-MIMO (64 RRU antennas and 16 UEs) with 20 MHz bandwidth and 64QAM modulation, on a 36-core server with AVX512 support. 
+* Agora currently supports 64x16 MU-MIMO (64 RRU antennas and 16 UEs) with 20 MHz bandwidth and 64QAM modulation, on a 36-core server_ with AVX512 support. 
 * Agora is configurable in terms of numbers of RRU antennas and UEs, bandwidth, modulation orders, LDPC code rates.
 * Agora supports an emulated RRU and UEs with a high-performance packet generator.
 * Agora has been tested with real RRUs with up to 64 antennas and up to 8 UEs. The RRU and UE devices are available from 
@@ -191,21 +191,21 @@ We use command line variables of cmake to switch between emulated RRU and real R
 We use `-DUSE_AGROS` for Faros RRU and Iris UEs, and `-DUSE_UHD` for USRP-based RRU and UEs. 
 
 Currently, Agora only supports uplink with real RRU and UEs. 
-We recommend using one server for controlling the RRU and running Agora, 
-and another server for controlling the UEs and running the UE code.
+We recommend using one server_ for controlling the RRU and running Agora, 
+and another server_ for controlling the UEs and running the UE code.
 Below we describe how to get the uplink demo work.
  * Rebuild the code on both servers for RRU side the UE side.
     * For Faros RRU and Iris UEs, pass `-DUSE_ARGOS=on -DUSE_UHD=off` to cmake
     * For USRP-based RRU and UEs, pass `-DUSE_ARGOS=off -DUSE_UHD=on` to cmake 
     * Run `make -j` to recompile the code.
- * Run the UE code on the server connected to the Iris UEs
+ * Run the UE code on the server_ connected to the Iris UEs
    * Modify `data/user-iris-serials.txt` by adding serials of two client Irises
      from your setup.
    * Run `./build/data_generator --conf_file data/ue-ul-hw.json` to generate required data files.
    * Run `./build/user --conf_file data/ue-ul-hw.json`.
- * Run Agora on the server connected to the Faros RRU
+ * Run Agora on the server_ connected to the Faros RRU
    * scp over the generated file `data/orig_data_512_ant2.bin` from the client
-     machine to the server's `data` directory.
+     machine to the server_'s `data` directory.
    * Rebuild the code
      * Set `kPrintPhyStats = true` in `src/common/Symbols.hpp`, if you wish to see uplink BER results.
      * Run `make -j` to recompile the code.
@@ -220,10 +220,10 @@ we recommend using two servers
 In our experiments, we use 2 servers each with 4 Intel Xeon Gold 6130 CPUs. 
 The servers are connected by 40 GbE Intel XL710 dual-port NICs. 
 
-* **NOTE**: We recommend using at least 10 GbE NIC and a server with more than 10 cores 
+* **NOTE**: We recommend using at least 10 GbE NIC and a server_ with more than 10 cores 
 for testing real-time performance of 8x8 MU-MIMO. 
 For 8x8 MU-MIMO, our test on a machine with AVX-512 and CPU frequency of 2.3 GHz support shows that at least 7 worker cores are required to achieve real-time performance. Additionally, Agora requires one core for the manager thread and at least 1 core for network threads. We change "worker_thread_num" and "socket_thread_num" to change the number cores assigned to of worker threads and network threads in the json files, e.g., data/tddconfig-sim-ul.json. 
-If you do not have a powerful server or high throughput NICs, 
+If you do not have a powerful server_ or high throughput NICs, 
 we recommend increasing the value of `--frame_duration` when you run `./build/sender`, 
 which will increase frame duration and reduce throughput.
 
@@ -231,7 +231,7 @@ To process 64x16 MU-MIMO in real-time, we use both ports of 40 GbE Intel XL710 N
 to get enough throughput for the traffic of 64 antennas. 
 (**NOTE**: For 100 GbE NIC, we just need to use one port to get enough thoughput.)
 
-To reduce performance variations, we did the following configurations for the server that runs Agora:
+To reduce performance variations, we did the following configurations for the server_ that runs Agora:
   * **NOTE**: These steps are not strictly required if you just wanted to try out Agora and do not care about performance variations.
   * Disable Turbo Boost to reduce performance variation by running 
     <pre>

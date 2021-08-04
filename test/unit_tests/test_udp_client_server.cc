@@ -18,7 +18,7 @@ void ClientFunc() {
   UDPClient udp_client;
 
   while (server_ready == 0) {
-    // Wait for server to get ready
+    // Wait for server_ to get ready
   }
 
   for (size_t i = 1; i <= kNumPackets; i++) {
@@ -33,7 +33,7 @@ void ServerFunc() {
   double freq_ghz = GetTime::MeasureRdtscFreq();
   FastRand fast_rand;
 
-  // Without buffer resizing, the server will sometimes drop packets and
+  // Without buffer resizing, the server_ will sometimes drop packets and
   // therefore never return from this function
   UDPServer udp_server(kServerUDPPort, kMessageSize * kNumPackets);
   std::vector<uint8_t> pkt_buf(kMessageSize);
@@ -66,7 +66,7 @@ void ServerFunc() {
               num_pkts_reordered);
 }
 
-// Test bandwidth between client and server
+// Test bandwidth between client and server_
 TEST(UDPClientServer, Perf) {
   server_ready = 0;
   std::thread server_thread(ServerFunc);
@@ -76,12 +76,12 @@ TEST(UDPClientServer, Perf) {
   client_thread.join();
 }
 
-// Test that the server is actually non-blocking
+// Test that the server_ is actually non-blocking
 TEST(UDPClientServer, ServerIsNonBlocking) {
   UDPServer udp_server(kServerUDPPort);
   std::vector<uint8_t> packet(kMessageSize);
 
-  // If the UDP server is blocking, this call never completes because there is
+  // If the UDP server_ is blocking, this call never completes because there is
   // no data to receive
   ssize_t ret = udp_server.Recv(&packet[0], kMessageSize);
   ASSERT_EQ(ret, 0);

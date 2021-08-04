@@ -227,7 +227,7 @@ void* RadioTxRx::LoopTxRx(int tid) {
         std::make_unique<UDPServer>(local_port_id, sock_buf_size);
     udp_clients_.at(radio_id) = std::make_unique<UDPClient>();
     MLPD_FRAME(
-        "TXRX thread %d: set up UDP socket server listening to port %d"
+        "TXRX thread %d: set up UDP socket server_ listening to port %d"
         " with remote address %s:%d \n",
         tid, local_port_id, config_->BsRruAddr().c_str(),
         config_->UeRruPort() + radio_id);

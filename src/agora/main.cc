@@ -1,6 +1,6 @@
 /**
  * @file main.cc
- * @brief Main file for the agora server
+ * @brief Main file for the agora server_
  */
 #include "agora.h"
 #include "gflags/gflags.h"

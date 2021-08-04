@@ -19,7 +19,7 @@
 
 /**
  * @brief The MAC thread that runs alongside the PHY processing at the Agora
- * server or client.
+ * server_ or client.
  *
  * This thread receives UDP data packets from remote apps and forwards them to
  * Agora. It receives decoded symbols from Agora and forwards UDP data
@@ -69,7 +69,7 @@ class MacThreadClient {
   void SendRanConfigUpdate(EventData event);
 
   // Send control information over (out-of-band) control channel
-  // from server to client
+  // from server_ to client
   void SendControlInformation();
 
   // At client, process control information received from control
@@ -78,12 +78,12 @@ class MacThreadClient {
   void ProcessControlInformation();
 
   // Receive user data bits (downlink bits at the MAC thread running at the
-  // server, uplink bits at the MAC thread running at the client) and forward
+  // server_, uplink bits at the MAC thread running at the client) and forward
   // them to the PHY.
   void ProcessUdpPacketsFromApps(RBIndicator ri);
   void ProcessUdpPacketsFromAppsClient(const char* payload, RBIndicator ri);
 
-  // If Mode::kServer, this thread is running at the Agora server. Else at
+  // If Mode::kServer, this thread is running at the Agora server_. Else at
   // the client.
   // const Mode mode_;
   Config* const cfg_;
@@ -106,7 +106,7 @@ class MacThreadClient {
   // UDP endpoint for receiving control channel messages
   std::unique_ptr<UDPServer> udp_control_channel_;
 
-  // TODO: decoded_buffer_ is used by only the server, so it should be moved
+  // TODO: decoded_buffer_ is used by only the server_, so it should be moved
   // to server_ for clarity.
   PtrCube<kFrameWnd, kMaxSymbols, kMaxUEs, int8_t>& decoded_buffer_;
 

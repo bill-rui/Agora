@@ -58,17 +58,17 @@ class UDPClient {
   }
 
   /**
-   * @brief Send one UDP packet to a remote server. The client caches the
-   * the remote server's addrinfo after resolving it for the first time. After
+   * @brief Send one UDP packet to a remote server_. The client caches the
+   * the remote server_'s addrinfo after resolving it for the first time. After
    * the first time, sending data does not require expensive addrinfo
    * resolution.
    *
-   * @param rem_hostname Hostname or IP address of the remote server
-   * @param rem_port UDP port that the remote server is listening on
+   * @param rem_hostname Hostname or IP address of the remote server_
+   * @param rem_port UDP port that the remote server_ is listening on
    * @param msg Pointer to the message to send
    * @param len Length in bytes of the message to send
    */
-  void Send(const std::string& rem_hostname, uint16_t rem_port,
+  ssize_t Send(const std::string& rem_hostname, uint16_t rem_port,
             const uint8_t* msg, size_t len) {
     std::string remote_uri = rem_hostname + ":" + std::to_string(rem_port);
     struct addrinfo* rem_addrinfo = nullptr;
@@ -131,6 +131,8 @@ class UDPClient {
       std::scoped_lock map_access(map_insert_access_);
       sent_vec_.emplace_back(msg, msg + len);
     }
+
+    return ret;
   }
 
   // Enable recording of all packets sent by this UDP client
