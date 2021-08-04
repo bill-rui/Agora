@@ -87,7 +87,7 @@ ssize_t CustomServer::Receive() {
 
     ssize_t received = server.Recv(rcv_ptr, kBuffSize);
     if (print_progress){ // TODO remove
-      std::cout << "packet received: " << received << std::endl;
+      std::cout << "[Receive Server] packet received: " << received << std::endl;
     }
     if (received < 0){
         throw std::runtime_error("Receive error");
@@ -110,6 +110,7 @@ ssize_t CustomServer::Receive() {
 ssize_t CustomServer::WriteTo(void *dest, ssize_t bytes){
     if (bytes > total_rx_data){ Receive(); }
     memcpy(dest, send_ptr, bytes);
+    std::cout << "[Receive Server] Data written: " << bytes << std::endl;
     total_rx_data -= bytes;
     send_ptr += bytes;
     return bytes;

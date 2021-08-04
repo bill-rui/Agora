@@ -7,5 +7,5 @@ sleep 1
 sleep 1
 ./build/macuser --conf_file data/ue-mac-dl-sim.json &
 
-./build/agora --enable_slow_start 1 --conf_file data/bs-mac-dl-sim.json &
-./build/macbs --enable_slow_start 1 --conf_file data/bs-mac-dl-sim.json
+./build/agora --conf_file data/bs-mac-dl-sim.json &
+./build/macbs --conf_file data/bs-mac-dl-sim.json
