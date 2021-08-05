@@ -32,6 +32,8 @@ class CustomServer {
       int kForwardingPort, ssize_t kSendPktSize
       );
   CustomServer(int kBuffSize, int kMaxRxSize, int kServerPort);
+  CustomServer(int kBuffSize, std::string kAddr, int kForwardingPort,
+               ssize_t SendPktSize);
   ~CustomServer(){
     delete[] rx_buffer;
   }

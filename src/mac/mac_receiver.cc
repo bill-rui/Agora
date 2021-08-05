@@ -6,6 +6,7 @@
 
 #include "signal_handler.h"
 #include "udp_server.h"
+#include "udp_client.h"
 
 static const bool kDebugMacReceiver = true;
 
@@ -40,6 +41,7 @@ void* MacReceiver::LoopRecv(size_t tid) {
   const size_t sock_buf_size = (1024 * 1024 * 64 * 8) - 1;
   auto udp_server =
       std::make_unique<UDPServer>(server_tx_port_ + ue_id, sock_buf_size);
+  auto sender = std::make_unique<UDPClient>();
 
   udp_server->MakeBlocking(1);
 
@@ -61,6 +63,7 @@ void* MacReceiver::LoopRecv(size_t tid) {
       throw std::runtime_error("Receiver: recv failed");
     } else if (static_cast<size_t>(recvlen) == packet_length) {
       // Write the data packet to a file or push to file writter queue
+      sender->Send("10.238.200.112", 1235, &rx_buffer[0u], packet_length);
       if (kDebugMacReceiver) {
         std::printf("MacReceiver: Thread %zu,  Received Data:", tid);
         for (size_t i = 0; i < packet_length; i++) {
@@ -68,6 +71,7 @@ void* MacReceiver::LoopRecv(size_t tid) {
         }
         std::printf("\n");
       }
+
     } else if (recvlen != 0) {
       std::printf(
           "MacReceiver: Recv failed with less than requested bytes %zu\n",
