@@ -12,7 +12,7 @@ DEFINE_uint64(core_offset, 0, "Core ID of the first sender thread");
 DEFINE_uint64(frame_duration, 5000, "Frame duration in microseconds");
 DEFINE_uint64(inter_frame_delay, 0, "Delay between two frames in microseconds");
 DEFINE_string(server_mac_addr, "ff:ff:ff:ff:ff:ff",
-              "MAC address of the remote Agora server_ to send data to");
+              "MAC address of the remote Agora server to send data to");
 DEFINE_string(conf_file,
               TOSTRING(PROJECT_DIRECTORY) "/data/tddconfig-sim-ul.json",
               "Config filename");

@@ -39,7 +39,7 @@ class Sender {
 
   /**
    * @brief Create and optionally start a Sender that sends IQ packets to a
-   * server_ with MAC address [server_mac_addr_str]
+   * server with MAC address [server_mac_addr_str]
    *
    * @param config The Agora config
    *
@@ -53,7 +53,7 @@ class Sender {
    * @param enable_slow_start If 1, the sender initially sends frames in a
    * duration larger than the TTI
    *
-   * @param server_mac_addr_str The MAC address of the server_'s NIC
+   * @param server_mac_addr_str The MAC address of the server's NIC
    */
   Sender(Config* cfg, size_t socket_thread_num, size_t core_offset = 30,
          size_t frame_duration = 1000, size_t inter_frame_delay = 0,
@@ -148,10 +148,10 @@ class Sender {
 #if defined(USE_DPDK)
   struct rte_mempool* mbuf_pool_;
   uint32_t bs_rru_addr_;     // IPv4 address of this data sender
-  uint32_t bs_server_addr_;  // IPv4 address of the remote target Agora server_
+  uint32_t bs_server_addr_;  // IPv4 address of the remote target Agora server
   // MAC addresses of this data sender
   std::vector<rte_ether_addr> sender_mac_addr_;
-  // MAC addresses of the remote target Agora server_
+  // MAC addresses of the remote target Agora server
   std::vector<rte_ether_addr> server_mac_addr_;
 #endif
 };
