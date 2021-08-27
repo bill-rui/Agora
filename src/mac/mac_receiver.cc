@@ -7,10 +7,16 @@
 #include "signal_handler.h"
 #include "udp_client.h"
 #include "udp_server.h"
+#include <fstream>
 
 #define STREAM_UDP_DATA
+#define WRITE_TO_FILE
+#define FILE_NAME "video.mp4"
+
 static constexpr char kVideoStreamingAddr[] = "10.238.200.112";
 static constexpr uint16_t kVideoStreamingPort = 1235u;
+std::ofstream stream("file", std::ofstream::out);
+
 
 static const bool kDebugMacReceiver = true;
 
@@ -50,6 +56,10 @@ void* MacReceiver::LoopRecv(size_t tid) {
   auto udp_video_streamer = std::make_unique<UDPClient>();
 #endif
 
+#if defined(WRITE_TO_FILE)
+  std::ofstream writer(FILE_NAME, std::ofstream::out);
+#endif
+
   udp_server->MakeBlocking(1);
 
   // TODO: Should each UE have a rx port?
@@ -70,10 +80,18 @@ void* MacReceiver::LoopRecv(size_t tid) {
       throw std::runtime_error("Receiver: recv failed");
     } else if (static_cast<size_t>(recvlen) == packet_length) {
       // Write the data packet to a file or push to file writter queue
+
 #if defined(STREAM_UDP_DATA)
       udp_video_streamer->Send(std::string(kVideoStreamingAddr),
                                kVideoStreamingPort, &rx_buffer[0u],
                                packet_length);
+
+#endif
+
+#if defined(WRITE_TO_FILE)
+      stream.write(reinterpret_cast<const char*>(&rx_buffer[0u]),
+                   packet_length);
+
 #endif
 
       if (kDebugMacReceiver) {
