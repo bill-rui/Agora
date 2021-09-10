@@ -11,12 +11,12 @@
   "ul_symbol_num_perframe": 0,
   "client_dl_pilot_syms": 2,
   "dl_data_symbol_start": 8,
-  "dl_symbol_num_perframe": 3,
+  "dl_symbol_num_perframe": 8,
   "beacon_position": 0,
   "mac_rx_port": 8070,
   "mac_tx_port": 8080,
   "core_offset": 16,
-  "worker_thread_num": 8,
-  "socket_thread_num": 1,
-  "frames_to_test": 5
+  "worker_thread_num": 10,
+  "socket_thread_num": 2,
+  "frames_to_test": 1000
 }
