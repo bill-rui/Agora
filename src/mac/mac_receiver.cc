@@ -9,7 +9,6 @@
 #include "udp_server.h"
 #include <fstream>
 
-#define STREAM_UDP_DATA
 #define WRITE_TO_FILE
 #define FILE_NAME "video.mp4"
 
@@ -89,9 +88,9 @@ void* MacReceiver::LoopRecv(size_t tid) {
 #endif
 
 #if defined(WRITE_TO_FILE)
-      stream.write(reinterpret_cast<const char*>(&rx_buffer[0u]),
+      writer.write(reinterpret_cast<const char*>(&rx_buffer[0u]),
                    packet_length);
-
+      std::cout << "[FILE WRITER] Data Written: " << packet_length << std::endl;
 #endif
 
       if (kDebugMacReceiver) {
