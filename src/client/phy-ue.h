@@ -7,6 +7,7 @@
 #define PHY_UE_H_
 
 #include <array>
+#include <list>
 #include <queue>
 #include <thread>
 #include <vector>
@@ -166,10 +167,7 @@ class PhyUe {
    * symbol_num_perframe
    */
   Table<char> rx_buffer_;
-  Table<int> rx_buffer_status_;
-
   size_t rx_buffer_size_;
-  int rx_buffer_status_size_;
 
   /**
    * Data for FFT, after time sync (prefix removed)
@@ -228,7 +226,13 @@ class PhyUe {
   // Uplink (Tx)
   FrameCounters encode_counter_;
   FrameCounters modulation_counters_;
-  FrameCounters ifft_counters_;
+
+  struct UeTxVars {
+    FrameCounters ifft_counters_;
+    std::list<size_t> tx_ready_frames_;
+    size_t tx_pending_frame_;
+  };
+  std::vector<UeTxVars> ue_tracker_;
 
   FrameCounters tomac_counters_;
 
