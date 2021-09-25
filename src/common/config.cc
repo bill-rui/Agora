@@ -49,6 +49,7 @@ Config::Config(const std::string& jsonfile)
   is_ue_ = tdd_conf.value("UE", false);
   ue_num_ = tdd_conf.value("ue_num", 8);
   ue_ant_num_ = ue_num_;
+
   if (serial_file.empty() == false) {
     Utils::LoadDevices(serial_file, radio_ids_);
   }
@@ -67,8 +68,15 @@ Config::Config(const std::string& jsonfile)
       }
     }
   } else {
-    num_radios_ =
-        tdd_conf.value("radio_num", is_ue_ ? ue_ant_num_ : bs_ant_num_);
+    if (is_ue_) {
+      size_t ue_radios = ue_num_ / num_channels_;
+      num_radios_ = tdd_conf.value("radio_num", ue_radios);
+      ue_num_ = num_radios_;
+      ue_ant_num_ = ue_num_ * num_channels_;
+    } else {
+      num_radios_ = tdd_conf.value("radio_num", bs_ant_num_);
+      ue_ant_num_ = ue_num_;
+    }
   }
   bf_ant_num_ = bs_ant_num_;
   if (external_ref_node_ == true) {
@@ -459,13 +467,15 @@ Config::Config(const std::string& jsonfile)
       "%s,\n\t%zu codeblocks per symbol, %zu bytes per code block,"
       "\n\t%zu UL MAC data bytes per frame, %zu UL MAC bytes per frame, "
       "\n\t%zu DL MAC data bytes per frame, %zu DL MAC bytes per frame, "
-      "frame time %.3f usec\n",
+      "frame time %.3f usec, Max data tp (Mbps) %.3f \n",
       bs_ant_num_, ue_ant_num_, frame_.NumPilotSyms(), frame_.NumULSyms(),
       frame_.NumDLSyms(), ofdm_ca_num_, ofdm_data_num_, modulation_.c_str(),
       ldpc_config_.NumBlocksInSymbol(), num_bytes_per_cb_,
       ul_mac_data_bytes_num_perframe_, ul_mac_bytes_num_perframe_,
       dl_mac_data_bytes_num_perframe_, dl_mac_bytes_num_perframe_,
-      this->GetFrameDurationSec() * 1e6);
+      this->GetFrameDurationSec() * 1e6,
+      (ul_mac_data_bytes_num_perframe_ * 8.0f) /
+          (this->GetFrameDurationSec() * 1e6));
 }
 
 void Config::GenData() {
@@ -624,8 +634,8 @@ void Config::GenData() {
       throw std::runtime_error("Config: Failed to open antenna file");
     }
 
-    for (size_t i = this->frame_.ClientUlPilotSymbols(); i < this->frame_.NumULSyms();
-         i++) {
+    for (size_t i = this->frame_.ClientUlPilotSymbols();
+         i < this->frame_.NumULSyms(); i++) {
       if (std::fseek(fd, (data_bytes_num_persymbol_ * this->ue_ant_offset_),
                      SEEK_CUR) != 0) {
         MLPD_ERROR(" *** Error: failed to seek propertly (pre) into %s file\n",
@@ -670,8 +680,8 @@ void Config::GenData() {
       throw std::runtime_error("Config: Failed to open dl antenna file");
     }
 
-    for (size_t i = this->frame_.ClientDlPilotSymbols(); i < this->frame_.NumDLSyms();
-         i++) {
+    for (size_t i = this->frame_.ClientDlPilotSymbols();
+         i < this->frame_.NumDLSyms(); i++) {
       for (size_t j = 0; j < this->ue_ant_num_; j++) {
         size_t r = std::fread(this->dl_bits_[i] + j * num_bytes_per_ue_pad,
                               sizeof(int8_t), data_bytes_num_persymbol_, fd);

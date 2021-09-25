@@ -18,26 +18,26 @@ class VideoReceiver : public MacDataReceiver {
  public:
   //Video stream specific variables
   static constexpr size_t kVideoStreamRxPort = 1350u;
-  //Typical rx size for a UDP data packet comming from VLC udp streamer
+  //Typical rx size for a UDP data packet coming from VLC udp streamer
   static constexpr size_t kVideoStreamRxSize = (1316u);
   static constexpr size_t kVideoStreamSocketRxBufSize =
       (kVideoStreamRxSize * 1000u);
-  //Oversize the potential recieve size
+  //Oversize the potential receive size
   static constexpr size_t kVideoStreamMaxRxSize = 2048u;
   static constexpr size_t kVideoStreamLocalRxBufSize =
       kVideoStreamMaxRxSize * 10;
 
-  VideoReceiver(size_t port);
-  ~VideoReceiver() = default;
+  explicit VideoReceiver(size_t port);
+  virtual ~VideoReceiver() = default;
 
-  void Load(char *destination, size_t num_load_bytes) override final;
+  size_t Load(char *destination, size_t num_load_bytes) override final;
 
  private:
   UDPServer udp_video_receiver_;
   std::array<uint8_t, VideoReceiver::kVideoStreamLocalRxBufSize>
       local_rx_buffer_;
 
-  size_t data_availble_;
+  size_t data_available_;
   size_t data_start_offset_;
 };
 
