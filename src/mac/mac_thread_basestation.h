@@ -57,6 +57,9 @@ class MacThreadBaseStation {
   // to appropriate function in MAC.
   void ProcessRxFromPhy();
 
+  //load data from mac_thread_basestation
+  void LoadData(uint8_t* dest, uint8_t* start, std::vector<size_t> len, size_t gap);
+
   // Receive decoded codeblocks from the PHY master thread. Send
   // fully-received frames for UE #i to kRemoteHostname::(kBaseRemotePort + i)
   void ProcessCodeblocksFromPhy(EventData event);
@@ -130,6 +133,9 @@ class MacThreadBaseStation {
   struct {
     // Staging buffers to accumulate decoded uplink code blocks for each UE
     std::vector<uint8_t> frame_data_[kMaxUEs];
+
+    //lengths of symbols in a frame
+    std::vector<size_t> symbol_lengths[kMaxUEs];
 
     // n_filled_in_frame_[i] is the number of bytes received in the current
     // frame for UE #i

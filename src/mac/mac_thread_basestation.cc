@@ -114,6 +114,16 @@ void MacThreadBaseStation::SendRanConfigUpdate(EventData /*event*/) {
   scheduler_next_frame_id_++;
 }
 
+void MacThreadBaseStation::LoadData(uint8_t* dest, uint8_t* start,
+                                    std::vector<size_t> len, size_t gap){
+  size_t dest_offset = 0;
+
+  for(int i = 0; i < len.size(); i++){
+    std::memcpy(dest + dest_offset, start + gap * i, len[i]);
+    dest_offset += len[i];
+  }
+}
+
 void MacThreadBaseStation::ProcessCodeblocksFromPhy(EventData event) {
   assert(event.event_type_ == EventType::kPacketToMac);
 
@@ -137,6 +147,7 @@ void MacThreadBaseStation::ProcessCodeblocksFromPhy(EventData event) {
         cfg_->MacPayloadLength();
     std::memcpy(&server_.frame_data_[ue_id][frame_data_offset], pkt->data_,
                 cfg_->MacPayloadLength());
+    server_.symbol_lengths[ue_id].push_back(pkt->datalen_);
     server_.n_filled_in_frame_[ue_id] += cfg_->MacPayloadLength();
 
     // Check CRC
@@ -172,9 +183,11 @@ void MacThreadBaseStation::ProcessCodeblocksFromPhy(EventData event) {
   // When the frame is full, send it to the application
   if (server_.n_filled_in_frame_[ue_id] == cfg_->UlMacDataBytesNumPerframe()) {
     server_.n_filled_in_frame_[ue_id] = 0;
-
+    unsigned char out_buffer[cfg_->UlMacBytesNumPerframe()];
+    LoadData(&out_buffer[0], &server_.frame_data_[ue_id][0],
+             server_.symbol_lengths[ue_id], cfg_->MacPayloadLength());
     udp_client_->Send(kMacRemoteHostname, cfg_->BsMacTxPort() + ue_id,
-                      &server_.frame_data_[ue_id][0],
+                      &out_buffer[0],
                       cfg_->UlMacDataBytesNumPerframe());
     std::fprintf(log_file_,
                  "MAC thread: Sent data for frame %zu, ue %zu, size %zu\n",
