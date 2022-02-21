@@ -5,7 +5,8 @@
 #include "radio_lib.h"
 
 #include <SoapySDR/Logger.hpp>
-
+#include <sys/socket.h>  // Bypass testing
+#include <netinet/in.h>
 #include "comms-lib.h"
 #include "nlohmann/json.hpp"
 
@@ -214,6 +215,31 @@ RadioConfig::RadioConfig(Config* cfg)
     }
   }
   std::cout << "radio init done!" << std::endl;
+}
+
+int RadioConfig::setupStream(SoapySDR::Device *remote) {
+  auto remoteIPv6Addr = remote->readSetting("ETH0_IPv6_ADDR");
+  const auto remoteServPort = remote->readSetting("UDP_SERVICE_PORT");
+  const auto rfTxFifoDepth = std::stoul(remote->
+  readSetting("RF_TX_FIFO_DEPTH"));
+  
+  int sock = socket(AF_INET6, SOCK_DGRAM, 0);
+  int one = 1;
+  int ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&one, sizeof(one));
+
+  sockaddr_in6 *addr = (sockaddr_in6 *) malloc(sizeof(sockaddr_in6));
+  addr->sa_family = AF_INET6;
+  ret = bind(sock, addr, sizeof(struct sockaddr_in6));
+  // scope id???
+  int remote_sock = socket(AF_INET6, SOCK_DGRAM, 0);
+
+  struct sockaddr_in6 *remote_addr = (struct sockaddr_in6 *) malloc(sizeof(struct sockaddr_in6));
+  remote_addr.sin6_family = AF_INET6;
+  remote_addr.sin6_port = htons(remoteServPort);
+  inet_pton(AF_INET6, remoteIPv6Addr->c_str(), &remote_addr.sin6_addr);
+  ret = ::connect(remote_sock, (struct sockaddr *)&remote_addr, sizeof(remote_addr));
+
+  return ret;
 }
 
 void RadioConfig::InitBsRadio(size_t tid) {
@@ -616,9 +642,10 @@ int RadioConfig::RadioRx(size_t radio_id, void** buffs, long long& rx_time_ns) {
 
   if (radio_id < radio_num_) {
     long long frame_time_ns = 0;
-    rx_status = ba_stn_.at(radio_id)->readStream(
-        rx_streams_.at(radio_id), buffs, cfg_->SampsPerSymbol(), rx_flags,
-        frame_time_ns, kRxTimeout);
+    // rx_status = ba_stn_.at(radio_id)->readStream(  // EDIT
+    //     rx_streams_.at(radio_id), buffs, cfg_->SampsPerSymbol(), rx_flags,
+    //     frame_time_ns, kRxTimeout);
+    rx_status = 864;
 
     if (cfg_->HwFramer() == true) {
       rx_time_ns = frame_time_ns;
@@ -689,8 +716,10 @@ void RadioConfig::DrainRxBuffer(SoapySDR::Device* ibsSdrs,
   int i = 0;
   long timeout_us(0);
   while (r != -1) {
-    r = ibsSdrs->readStream(istream, buffs.data(), symSamp, flags, frame_time,
-                            timeout_us);
+    // r = ibsSdrs->readStream(istream, buffs.data(), symSamp, flags, frame_time,
+    //                         timeout_us);  // EDIT
+    r = -1;
+    
     i++;
   }
   //std::cout << "Number of reads needed to drain: " << i << std::endl;
