@@ -228,16 +228,15 @@ int RadioConfig::setupStream(SoapySDR::Device *remote) {
   int ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&one, sizeof(one));
 
   sockaddr_in6 *addr = (sockaddr_in6 *) malloc(sizeof(sockaddr_in6));
-  addr->sa_family = AF_INET6;
-  ret = bind(sock, addr, sizeof(struct sockaddr_in6));
+  addr->sin6_family = AF_INET6;
+  ret = bind(sock, (struct sockaddr *)addr, sizeof(struct sockaddr_in6));
   // scope id???
   int remote_sock = socket(AF_INET6, SOCK_DGRAM, 0);
-
   struct sockaddr_in6 *remote_addr = (struct sockaddr_in6 *) malloc(sizeof(struct sockaddr_in6));
-  remote_addr.sin6_family = AF_INET6;
-  remote_addr.sin6_port = htons(remoteServPort);
-  inet_pton(AF_INET6, remoteIPv6Addr->c_str(), &remote_addr.sin6_addr);
-  ret = ::connect(remote_sock, (struct sockaddr *)&remote_addr, sizeof(remote_addr));
+  remote_addr->sin6_family = AF_INET6;
+  remote_addr->sin6_port = htons(stoi(remoteServPort));
+  inet_pton(AF_INET6, remoteIPv6Addr.c_str(), &(remote_addr->sin6_addr));
+  ret = ::connect(remote_sock, (struct sockaddr *)remote_addr, sizeof(remote_addr));
 
   return ret;
 }
