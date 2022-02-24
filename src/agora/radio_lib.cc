@@ -303,8 +303,9 @@ void RadioConfig::InitBsRadio(size_t tid) {
   // resets the DATA_clk domain logic.
   ba_stn_.at(i)->writeSetting("RESET_DATA_LOGIC", "");
 
-  rx_streams_.at(i) =
-      ba_stn_.at(i)->setupStream(SOAPY_SDR_RX, SOAPY_SDR_CS16, channels, sargs);
+  // rx_streams_.at(i) =
+  //     ba_stn_.at(i)->setupStream(SOAPY_SDR_RX, SOAPY_SDR_CS16, channels, sargs);
+  setupStream(ba_stn_.at(i));
   tx_streams_.at(i) =
       ba_stn_.at(i)->setupStream(SOAPY_SDR_TX, SOAPY_SDR_CS16, channels, sargs);
   this->num_radios_initialized_.fetch_add(1);
