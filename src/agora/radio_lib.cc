@@ -7,6 +7,7 @@
 #include <SoapySDR/Logger.hpp>
 #include <sys/socket.h>  // Bypass testing
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include "comms-lib.h"
 #include "nlohmann/json.hpp"
 
@@ -218,25 +219,47 @@ RadioConfig::RadioConfig(Config* cfg)
 }
 
 int RadioConfig::setupStream(SoapySDR::Device *remote) {
+  int ret = 0;
+
   auto remoteIPv6Addr = remote->readSetting("ETH0_IPv6_ADDR");
   const auto remoteServPort = remote->readSetting("UDP_SERVICE_PORT");
   const auto rfTxFifoDepth = std::stoul(remote->
   readSetting("RF_TX_FIFO_DEPTH"));
   
-  int sock = socket(AF_INET6, SOCK_DGRAM, 0);
+  int sock = ::socket(AF_INET6, SOCK_DGRAM, 0);
+  if (sock == -1) {
+    fprintf(stderr, "sock initialization error");
+    return sock;
+  }
   int one = 1;
-  int ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&one, sizeof(one));
+  if ((ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+                        (const char *)&one, sizeof(one))) != 0) {
+    fprintf(stderr, "setsockopt() error\n");
+    return ret;
+  }
 
-  sockaddr_in6 *addr = (sockaddr_in6 *) malloc(sizeof(sockaddr_in6));
+  std::unique_ptr<sockaddr_in6> addr(new sockaddr_in6);
   addr->sin6_family = AF_INET6;
-  ret = bind(sock, (struct sockaddr *)addr, sizeof(struct sockaddr_in6));
+  if ((ret = ::bind(sock, (struct sockaddr *)addr.get(),
+                    sizeof(struct sockaddr_in6))) != 0) {
+    fprintf(stderr, "bind() error\n");
+    return ret;
+  }
   // scope id???
   int remote_sock = socket(AF_INET6, SOCK_DGRAM, 0);
-  struct sockaddr_in6 *remote_addr = (struct sockaddr_in6 *) malloc(sizeof(struct sockaddr_in6));
+  if (remote_sock == -1) {
+    fprintf(stderr, "sock initialization error");
+    return remote_sock;
+  }
+
+  std::unique_ptr<sockaddr_in6> remote_addr(new sockaddr_in6);
   remote_addr->sin6_family = AF_INET6;
   remote_addr->sin6_port = htons(stoi(remoteServPort));
   inet_pton(AF_INET6, remoteIPv6Addr.c_str(), &(remote_addr->sin6_addr));
-  ret = ::connect(remote_sock, (struct sockaddr *)remote_addr, sizeof(remote_addr));
+  if ((ret = ::connect(remote_sock, (struct sockaddr *)remote_addr.get(),
+                       sizeof(*remote_addr))) != 0) {
+    fprintf(stderr, "connect() error\n");
+  }
 
   return ret;
 }
