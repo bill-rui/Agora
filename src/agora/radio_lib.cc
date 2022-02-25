@@ -225,7 +225,17 @@ int RadioConfig::setupStream(SoapySDR::Device *remote) {
   const auto remoteServPort = remote->readSetting("UDP_SERVICE_PORT");
   const auto rfTxFifoDepth = std::stoul(remote->
   readSetting("RF_TX_FIFO_DEPTH"));
-  
+
+  std::cout << "[DEBUG] addr before fix:" << remoteIPv6Addr << std::endl;
+  // scope id change. only applies to vulture
+  if (!remoteIPv6Addr.empty()) {
+    uint64_t idx = remoteIPv6Addr.find('%');
+    remoteIPv6Addr = remoteIPv6Addr.substr(0, idx + 1);
+    remoteIPv6Addr.append("%5");
+  }
+
+  std::cout << "[DEBUG] addr after fix:" << remoteIPv6Addr << std::endl;
+
   int sock = ::socket(AF_INET6, SOCK_DGRAM, 0);
   if (sock == -1) {
     fprintf(stderr, "sock initialization error");
