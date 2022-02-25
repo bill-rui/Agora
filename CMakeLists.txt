@@ -282,7 +282,9 @@ set(AGORA_SOURCES ${AGORA_SOURCES}
   src/agora/txrx/workers/txrx_worker.cc
   src/agora/txrx/workers/txrx_worker_sim.cc
   src/agora/txrx/workers/txrx_worker_argos.cc
-  src/agora/txrx/workers/txrx_worker_usrp.cc)
+  src/agora/txrx/workers/txrx_worker_usrp.cc
+        test/radio_test/stream.cpp
+        test/radio_test/stream.h)
 
 add_library(agora_sources_lib OBJECT ${AGORA_SOURCES})
 

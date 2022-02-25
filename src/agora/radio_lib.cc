@@ -5,9 +5,7 @@
 #include "radio_lib.h"
 
 #include <SoapySDR/Logger.hpp>
-#include <sys/socket.h>  // Bypass testing
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "./../../test/radio_test/stream.h"
 #include "comms-lib.h"
 #include "nlohmann/json.hpp"
 
@@ -218,62 +216,6 @@ RadioConfig::RadioConfig(Config* cfg)
   std::cout << "radio init done!" << std::endl;
 }
 
-int RadioConfig::setupStream(SoapySDR::Device *remote) {
-  int ret = 0;
-
-  auto remoteIPv6Addr = remote->readSetting("ETH0_IPv6_ADDR");
-  const auto remoteServPort = remote->readSetting("UDP_SERVICE_PORT");
-  const auto rfTxFifoDepth = std::stoul(remote->
-  readSetting("RF_TX_FIFO_DEPTH"));
-
-  // scope id change. only applies to vulture
-  if (!remoteIPv6Addr.empty()) {
-    uint64_t idx = remoteIPv6Addr.find('%');
-    remoteIPv6Addr = remoteIPv6Addr.substr(0, idx);
-    remoteIPv6Addr.append("%5");
-  } else {
-    fprintf(stderr, "IPv6 Address empty");
-    return(-1);
-  }
-
-  int sock = ::socket(AF_INET6, SOCK_DGRAM, 0);
-  if (sock == -1) {
-    fprintf(stderr, "sock initialization error");
-    return sock;
-  }
-  int one = 1;
-  if ((ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-                        (const char *)&one, sizeof(one))) != 0) {
-    fprintf(stderr, "setsockopt() error\n");
-    return ret;
-  }
-
-  std::unique_ptr<sockaddr_in6> addr(new sockaddr_in6);
-  addr->sin6_family = AF_INET6;
-  if ((ret = ::bind(sock, (struct sockaddr *)addr.get(),
-                    sizeof(struct sockaddr_in6))) != 0) {
-    fprintf(stderr, "bind() error\n");
-    return ret;
-  }
-  // scope id???
-  int remote_sock = socket(AF_INET6, SOCK_DGRAM, 0);
-  if (remote_sock == -1) {
-    fprintf(stderr, "sock initialization error");
-    return remote_sock;
-  }
-
-  std::unique_ptr<sockaddr_in6> remote_addr(new sockaddr_in6);
-  remote_addr->sin6_family = AF_INET6;
-  remote_addr->sin6_port = htons(stoi(remoteServPort));
-  inet_pton(AF_INET6, remoteIPv6Addr.c_str(), &(remote_addr->sin6_addr));
-  if ((ret = ::connect(remote_sock, (struct sockaddr *)remote_addr.get(),
-                       sizeof(*remote_addr))) != 0) {
-    fprintf(stderr, "connect() error\n");
-  }
-
-  return ret;
-}
-
 void RadioConfig::InitBsRadio(size_t tid) {
   size_t i = tid;
   auto channels = Utils::StrToChannels(cfg_->Channel());
@@ -315,7 +257,7 @@ void RadioConfig::InitBsRadio(size_t tid) {
 
   // rx_streams_.at(i) =
   //     ba_stn_.at(i)->setupStream(SOAPY_SDR_RX, SOAPY_SDR_CS16, channels, sargs);
-  setupStream(ba_stn_.at(i));
+  Stream::setupStream(ba_stn_.at(i));
   tx_streams_.at(i) =
       ba_stn_.at(i)->setupStream(SOAPY_SDR_TX, SOAPY_SDR_CS16, channels, sargs);
   this->num_radios_initialized_.fetch_add(1);

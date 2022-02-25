@@ -23,7 +23,6 @@
 class RadioConfig {
  public:
   explicit RadioConfig(Config* cfg);
-  static int setupStream(SoapySDR::Device *remote); // Bypass Testing
   bool RadioStart();
   void RadioStop();
   void ReadSensors();
