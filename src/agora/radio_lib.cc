@@ -231,6 +231,9 @@ int RadioConfig::setupStream(SoapySDR::Device *remote) {
     uint64_t idx = remoteIPv6Addr.find('%');
     remoteIPv6Addr = remoteIPv6Addr.substr(0, idx);
     remoteIPv6Addr.append("%5");
+  } else {
+    fprintf(stderr, "IPv6 Address empty");
+    return(-1);
   }
 
   int sock = ::socket(AF_INET6, SOCK_DGRAM, 0);
