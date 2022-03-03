@@ -42,13 +42,18 @@ int Stream::setupStream(SoapySDR::Device *remote) {
     }
     printf("[DEBUG] point 1\n");
     std::unique_ptr<sockaddr_in6> addr(new sockaddr_in6);
+    addr->sin6_port = htons(0);
     addr->sin6_family = AF_INET6;
+    addr->sin6_addr = in6addr_any;
+
     if ((ret = ::bind(sock, (struct sockaddr *)addr.get(),
                       sizeof(struct sockaddr_in6))) != 0) {
-        fprintf(stderr, "bind() error\n");
+        fprintf(stderr, "[ERROR] bind() error: %d\n", errno);
         return ret;
+    } else {
+      printf("[DEBUG] bind() success!\n");
     }
-    // scope id???
+
     int remote_sock = socket(AF_INET6, SOCK_DGRAM, 0);
     if (remote_sock == -1) {
         fprintf(stderr, "sock initialization error");
@@ -61,7 +66,7 @@ int Stream::setupStream(SoapySDR::Device *remote) {
     inet_pton(AF_INET6, remoteIPv6Addr.c_str(), &(remote_addr->sin6_addr));
     if ((ret = ::connect(remote_sock, (struct sockaddr *)remote_addr.get(),
                          sizeof(*remote_addr))) != 0) {
-        fprintf(stderr, "connect() error\n");
+        fprintf(stderr, "[ERROR] connect() error: %s\n", strerror(errno));
     }
 
     printf("[DEBUG] point 3\n");
