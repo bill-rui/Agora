@@ -13,7 +13,6 @@
 
 int Stream::setupStream(SoapySDR::Device *remote) {
     int ret = 0;
-    printf("[DEBUG] point 0\n");
     auto remoteIPv6Addr = remote->readSetting("ETH0_IPv6_ADDR");
     const auto remoteServPort = remote->readSetting("UDP_SERVICE_PORT");
     const auto rfTxFifoDepth = std::stoul(remote->
@@ -34,13 +33,14 @@ int Stream::setupStream(SoapySDR::Device *remote) {
         fprintf(stderr, "sock initialization error");
         return sock;
     }
+
     int one = 1;
     if ((ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
                           (const char *)&one, sizeof(one))) != 0) {
         fprintf(stderr, "setsockopt() error\n");
         return ret;
     }
-    printf("[DEBUG] point 1\n");
+
     std::unique_ptr<sockaddr_in6> addr(new sockaddr_in6);
     addr->sin6_port = htons(0);
     addr->sin6_family = AF_INET6;
@@ -55,21 +55,25 @@ int Stream::setupStream(SoapySDR::Device *remote) {
     }
 
     int remote_sock = socket(AF_INET6, SOCK_DGRAM, 0);
+
     if (remote_sock == -1) {
         fprintf(stderr, "sock initialization error");
         return remote_sock;
     }
-    printf("[DEBUG] point 2\n");
+
     std::unique_ptr<sockaddr_in6> remote_addr(new sockaddr_in6);
     remote_addr->sin6_family = AF_INET6;
     remote_addr->sin6_port = htons(stoi(remoteServPort));
     inet_pton(AF_INET6, remoteIPv6Addr.c_str(), &(remote_addr->sin6_addr));
+    printf("[DEBUG] attempt to connect to %s\n", remoteIPv6Addr.c_str());
+    char test[100];
+    inet_ntop(AF_INET6, &(remote_addr->sin6_addr), test, 100);
+    printf("[DEBUG] connect to addr: %s\n", test);
+    printf("[DEBUG] connect to port: %d\n", ntohs(remote_addr->sin6_port));
     if ((ret = ::connect(remote_sock, (struct sockaddr *)remote_addr.get(),
                          sizeof(*remote_addr))) != 0) {
         fprintf(stderr, "[ERROR] connect() error: %s\n", strerror(errno));
     }
-
-    printf("[DEBUG] point 3\n");
 
     return ret;
 }
