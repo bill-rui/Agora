@@ -10,10 +10,15 @@ int8_t i = 4;
 int8_t s = 5;
 int8_t q = 6;
 
+// map bytes into position
 const static __m256i bytegrouping =
   _mm256_setr_epi8(i,s, s,q,  i + 3,s + 3, s + 3,q + 3,  i + 6,s + 6, s + 6,q +6,  i + 9,s + 9, s + 9,q + 9,
                     i + 12,s + 12, s + 12,q + 12,  i + 15, s + 15, s + 15,q + 15,   i + 18, s + 18, s + 18,q + 18,   i + 21,s + 21, s + 21,q + 21);
 
+
+/*
+ * the new way
+ */
 void unpack(uint8_t *p, __m256i *r, size_t s)
 {
   __m256i v, shuffle, shift, mask;
@@ -21,15 +26,18 @@ void unpack(uint8_t *p, __m256i *r, size_t s)
 
   __m256i *ret = (__m256i*) r;
   for (size_t i = 0; i < s / 24; i++) {
-    v = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p - 4));
-    shuffle = _mm256_shuffle_epi8(v, bytegrouping);
-    shift = _mm256_slli_epi16(shuffle, 4);
-    mask  = _mm256_and_si256(shuffle, _mm256_set1_epi32(static_cast<int>(0xFFF00000)));
-    _mm256_store_si256(&ret[i], _mm256_blend_epi16(shift, mask, 0b10101010));
+    v = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p - 4));  // load content
+    shuffle = _mm256_shuffle_epi8(v, bytegrouping);  // move bytes around
+    shift = _mm256_slli_epi16(shuffle, 4);  // shift each 16 bytes chunk left by 4 bits
+    mask  = _mm256_and_si256(shuffle, _mm256_set1_epi32(static_cast<int>(0xFFF00000)));  // mask out a nibble in the second int
+    _mm256_store_si256(&ret[i], _mm256_blend_epi16(shift, mask, 0b10101010));  // merge shift and mask
     p += 24;
   }
 }
 
+/*
+ * Current way of unpacking
+ */
 void n_unpack(uint8_t *p, uint16_t *r, size_t s)
 {
   assert(s % 3 == 0);
