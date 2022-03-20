@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define TESTSZ 100
+#define TESTSZ 250000
 
 int8_t i = 4;
 int8_t s = 5;
@@ -62,23 +62,25 @@ uint8_t hundred_cycles[2400];
 uint8_t speed_test[24 * TESTSZ];
 uint16_t speed_ref[16 * TESTSZ];
 
-TEST (Unpack24To32, NaiveSpeed) {
-  uint16_t *ret_n = (uint16_t*) malloc(32 * TESTSZ);
+TEST (Performance, CurrentImplementation) {
+  //uint16_t *ret_n = (uint16_t*) malloc(32 * TESTSZ);
+  uint16_t ret_n[16 * TESTSZ];
   n_unpack(speed_test, ret_n, sizeof(speed_test));
   
   ASSERT_EQ(0, memcmp(ret_n, speed_ref, sizeof(ret_n))); 
 }
 
-TEST (Unpack24To32, ModifiedSpeed) {
-  __m256i *ret_t;
-  if ((ret_t = (__m256i*) malloc(32 * TESTSZ)) == NULL) {
-    printf("malloc fail\n");
-  }
+TEST (Performance, SIMDImplementation) {
+  // __m256i *ret_t;
+  // if ((ret_t = (__m256i*) malloc(32 * TESTSZ)) == NULL) {
+  //   printf("malloc fail\n");
+  // }
+  __m256i ret_t[TESTSZ];
   unpack(speed_test, ret_t, sizeof(speed_test));
   ASSERT_EQ(0, memcmp(ret_t, speed_ref, sizeof(ret_t)));
 }
 
-TEST (Unpack24To32, RandomValue) {
+TEST (Correctness, OneCycleRandom) {
   uint16_t ret_n[16];
   __m256i ret_t[1];
   
@@ -88,7 +90,7 @@ TEST (Unpack24To32, RandomValue) {
   ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
 }
 
-TEST (Unpack24To32, ZeroValues) {
+TEST (Correctness, OneCycleZeros) {
   uint16_t ret_n[16];
   __m256i ret_t[1];
   
@@ -98,7 +100,7 @@ TEST (Unpack24To32, ZeroValues) {
   ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
 }
 
-TEST (Unpack24To32, UniformValues) {
+TEST (Correctness, OneCylceUniform) {
   uint16_t ret_n[16];
   __m256i ret_t[1];
   
@@ -108,7 +110,7 @@ TEST (Unpack24To32, UniformValues) {
   ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
 }
 
-TEST (Unpack24To32, Three256Cycles) {
+TEST (Correctness, ThreeCyclesRandom) {
   uint16_t ret_n[48];
   __m256i ret_t[3];
   
@@ -118,7 +120,7 @@ TEST (Unpack24To32, Three256Cycles) {
   ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
 }
 
-TEST (Unpack24To32, AHundred256Cycles) {
+TEST (Correctness, 100CyclesRandom) {
   uint16_t ret_n[1600];
   __m256i ret_t[100];
   
