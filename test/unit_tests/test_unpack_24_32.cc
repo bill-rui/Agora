@@ -4,71 +4,97 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "memory_manage.h"
+
 #define TESTSZ 250000
 
-int8_t i = 4;
-int8_t s = 5;
-int8_t q = 6;
+static constexpr size_t kBitsPerByte = 8;
+static constexpr size_t kPackedBits = 24;
+static constexpr size_t kBytesPerAvx2 = 24;
+static constexpr size_t kPackedBytes = kPackedBits / kBitsPerByte;
+static constexpr size_t kUnPackedBytesDiv2 = 2;
+
+static constexpr int8_t kI = 4;
+static constexpr int8_t kS = 5;
+static constexpr int8_t kQ = 6;
 
 // map bytes into position
 const static __m256i bytegrouping =
-  _mm256_setr_epi8(i,s, s,q,  i + 3,s + 3, s + 3,q + 3,  i + 6,s + 6, s + 6,q +6,  i + 9,s + 9, s + 9,q + 9,
-                    i + 12,s + 12, s + 12,q + 12,  i + 15, s + 15, s + 15,q + 15,   i + 18, s + 18, s + 18,q + 18,   i + 21,s + 21, s + 21,q + 21);
+  _mm256_setr_epi8(kI, kS, kS, kQ,  kI + 3, kS + 3, kS + 3,kQ + 3,  kI + 6,kS + 6, kS + 6,kQ +6,  kI + 9, kS + 9, kS + 9, kQ + 9,
+                    kI + 12, kS + 12, kS + 12, kQ + 12,  kI + 15, kS + 15, kS + 15, kQ + 15,   kI + 18, kS + 18, kS + 18, kQ + 18,   kI + 21, kS + 21, kS + 21, kQ + 21);
 
 
 /*
  * the new way
  */
-void unpack(uint8_t *p, __m256i *r, size_t s)
-{
-  __m256i v, shuffle, shift, mask;
-  assert(s % 24 == 0);
+void unpack24_32_avx2(uint8_t *packed, __m256i *unpacked, size_t to_unpack) {
+  assert(to_unpack % kBytesPerAvx2 == 0);
+  assert((reinterpret_cast<intptr_t>(unpacked) % 32) == 0);
 
-  __m256i *ret = (__m256i*) r;
-  for (size_t i = 0; i < s / 24; i++) {
-    v = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p - 4));  // load content
-    shuffle = _mm256_shuffle_epi8(v, bytegrouping);  // move bytes around
-    shift = _mm256_slli_epi16(shuffle, 4);  // shift each 16 bytes chunk left by 4 bits
-    mask  = _mm256_and_si256(shuffle, _mm256_set1_epi32(static_cast<int>(0xFFF00000)));  // mask out a nibble in the second int
-    _mm256_store_si256(&ret[i], _mm256_blend_epi16(shift, mask, 0b10101010));  // merge shift and mask
-    p += 24;
+  for (size_t i = 0; i < to_unpack / 24; i++) {
+    const __m256i aligned_packed = 
+       _mm256_loadu_si256(reinterpret_cast<const __m256i *>(
+          &packed[(i * kBytesPerAvx2) - 4]));  // load content
+    const __m256i shuffle = 
+       _mm256_shuffle_epi8(aligned_packed, bytegrouping);  // move bytes around
+    const __m256i shift = 
+       _mm256_slli_epi16(shuffle, 4);  // shift each 16 bytes chunk left by 4 bits
+    const __m256i mask  = 
+       _mm256_and_si256(shuffle, _mm256_set1_epi32(
+          static_cast<int>(0xFFF00000)));  // mask out a nibble in the second int
+    _mm256_store_si256(&unpacked[i], _mm256_blend_epi16(
+         shift, mask, 0b10101010));  // merge shift and mask
   }
 }
 
 /*
  * Current way of unpacking
  */
-void n_unpack(uint8_t *p, uint16_t *r, size_t s)
-{
-  assert(s % 3 == 0);
-  for (size_t i = 0; i < s / 3; i++) {
-    const uint16_t i_lsb = uint16_t(p[3 * i]);
-    const uint16_t split = uint16_t(p[3 * i + 1u]);
-    const uint16_t q_msb = uint16_t(p[3 * i + 2u]);
-    r[i * 2] = int16_t((split << 12u) | (i_lsb << 4u));
-    r[i * 2 + 1] = int16_t((q_msb << 8u) | (split & 0xf0));
+void unpack24_32_naive(const uint8_t *packed, int16_t *unpacked, 
+                       size_t to_unpack) {
+  assert(to_unpack % 3 == 0);
+  for (size_t i = 0u; i < to_unpack / 3; i++) {
+    const size_t packed_index = kPackedBytes * i;
+    const size_t unpacked_index = kUnPackedBytesDiv2 * i;
+
+    const uint16_t i_lsb = uint16_t(packed[packed_index]);
+    const uint16_t split = uint16_t(packed[packed_index + 1u]);
+    const uint16_t q_msb = uint16_t(packed[packed_index + 2u]);
+    unpacked[unpacked_index] = int16_t((split << 12u) | (i_lsb << 4u));
+    unpacked[unpacked_index + 1] = int16_t((q_msb << 8u) | (split & 0xf0));
   }
 }
 
 /*
  * Unit tests input values
  */
-  
-uint8_t random_one[24];
-uint8_t zeros[24];
-uint8_t uniform[24];
-uint8_t three_cycles[72];
-uint8_t hundred_cycles[2400];
+static constexpr size_t kSpeedIterations = 10000 * kBytesPerAvx2;
+//24->34 == 3->4 (bits to bits == byes to bytes)
+static constexpr size_t kPackedSizeMinBytes = 3;
+static constexpr size_t kUnpackedSizeMinBytes = 4;
+static constexpr size_t output_bytes_per_cycle = kBytesPerAvx2 * 
+                                                    kUnpackedSizeMinBytes / 
+                                                    kPackedSizeMinBytes;
+
+int16_t *truth_result;
+int16_t *function_result;
+uint8_t *speed_packed_input;
+
+uint8_t random_one[kBytesPerAvx2];
+uint8_t zeros[kBytesPerAvx2];
+uint8_t uniform[kBytesPerAvx2];
+uint8_t three_cycles[kBytesPerAvx2 * 3];
+uint8_t hundred_cycles[kBytesPerAvx2 * 100];
 uint8_t speed_test[24 * TESTSZ];
-uint16_t speed_ref[16 * TESTSZ];
+int16_t speed_ref[16 * TESTSZ];
 
 TEST (Performance, CurrentImplementation) {
   //uint16_t *ret_n = (uint16_t*) malloc(32 * TESTSZ);
-  uint16_t ret_n[16 * TESTSZ];
-  n_unpack(speed_test, ret_n, sizeof(speed_test));
-  n_unpack(speed_test, ret_n, sizeof(speed_test));
-  n_unpack(speed_test, ret_n, sizeof(speed_test));
-  n_unpack(speed_test, ret_n, sizeof(speed_test));
+  int16_t ret_n[16 * TESTSZ];
+  unpack24_32_naive(speed_test, ret_n, sizeof(speed_test));
+  unpack24_32_naive(speed_test, ret_n, sizeof(speed_test));
+  unpack24_32_naive(speed_test, ret_n, sizeof(speed_test));
+  unpack24_32_naive(speed_test, ret_n, sizeof(speed_test));
   
   ASSERT_EQ(0, 0); 
 }
@@ -79,64 +105,68 @@ TEST (Performance, SIMDImplementation) {
   //   printf("malloc fail\n");
   // }
   __m256i ret_t[TESTSZ];
-  unpack(speed_test, ret_t, sizeof(speed_test));
-  unpack(speed_test, ret_t, sizeof(speed_test));
-  unpack(speed_test, ret_t, sizeof(speed_test));
-  unpack(speed_test, ret_t, sizeof(speed_test));
+  unpack24_32_avx2(speed_test, ret_t, sizeof(speed_test));
+  unpack24_32_avx2(speed_test, ret_t, sizeof(speed_test));
+  unpack24_32_avx2(speed_test, ret_t, sizeof(speed_test));
+  unpack24_32_avx2(speed_test, ret_t, sizeof(speed_test));
   ASSERT_EQ(0, 0);
 }
 
 TEST (Correctness, OneCycleRandom) {
-  uint16_t ret_n[16];
-  __m256i ret_t[1];
-  
-  n_unpack(random_one, ret_n, sizeof(random_one));
-  unpack(random_one, ret_t, sizeof(random_one));
+  const size_t output_bytes = output_bytes_per_cycle;
+  unpack24_32_naive(random_one, truth_result, kBytesPerAvx2);
+  unpack24_32_avx2(random_one, reinterpret_cast<__m256i*>(function_result), 
+                   kBytesPerAvx2);
 
-  ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
 TEST (Correctness, OneCycleZeros) {
-  uint16_t ret_n[16];
-  __m256i ret_t[1];
-  
-  n_unpack(zeros, ret_n, sizeof(zeros));
-  unpack(zeros, ret_t, sizeof(zeros));
+  const size_t output_bytes = output_bytes_per_cycle;
+  unpack24_32_naive(zeros, truth_result, kBytesPerAvx2);
+  unpack24_32_avx2(zeros, reinterpret_cast<__m256i*>(function_result), 
+                   kBytesPerAvx2);
 
-  ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
 TEST (Correctness, OneCylceUniform) {
-  uint16_t ret_n[16];
-  __m256i ret_t[1];
-  
-  n_unpack(uniform, ret_n, sizeof(uniform));
-  unpack(uniform, ret_t, sizeof(uniform));
+  const size_t output_bytes = output_bytes_per_cycle;
+  unpack24_32_naive(uniform, truth_result, kBytesPerAvx2);
+  unpack24_32_avx2(uniform, reinterpret_cast<__m256i*>(function_result), 
+                   kBytesPerAvx2);
 
-  ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
 TEST (Correctness, ThreeCyclesRandom) {
-  uint16_t ret_n[48];
-  __m256i ret_t[3];
-  
-  n_unpack(three_cycles, ret_n, sizeof(three_cycles));
-  unpack(three_cycles, ret_t, sizeof(three_cycles));
+  const size_t output_bytes = 3 * output_bytes_per_cycle;
+  unpack24_32_naive(three_cycles, truth_result, kBytesPerAvx2);
+  unpack24_32_avx2(three_cycles, reinterpret_cast<__m256i*>(function_result), 
+                   kBytesPerAvx2);
 
-  ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
 TEST (Correctness, 100CyclesRandom) {
-  uint16_t ret_n[1600];
-  __m256i ret_t[100];
-  
-  n_unpack(hundred_cycles, ret_n, sizeof(hundred_cycles));
-  unpack(hundred_cycles, ret_t, sizeof(hundred_cycles));
+  const size_t output_bytes = 100 * output_bytes_per_cycle;
+  unpack24_32_naive(hundred_cycles, truth_result, kBytesPerAvx2);
+  unpack24_32_avx2(hundred_cycles, reinterpret_cast<__m256i*>(function_result), 
+                   kBytesPerAvx2);
 
-  ASSERT_EQ(0, memcmp(ret_n, ret_t, sizeof(ret_n)));
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
 void setup() {
+  const size_t result_size_bytes = kSpeedIterations * kUnpackedSizeMinBytes;
+  const size_t speed_input_bytes = kSpeedIterations * kPackedSizeMinBytes;
+  truth_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+
+  function_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+
+
   for (size_t i = 0 ; i < sizeof(random_one); i++) {
     random_one[i] = rand() % 100;
   }
@@ -161,7 +191,7 @@ void setup() {
     speed_test[i] = static_cast<uint8_t>(rand() % 100);
   }
 
-  n_unpack(speed_test, speed_ref, sizeof(speed_test));
+  unpack24_32_naive(speed_test, speed_ref, sizeof(speed_test));
 }
 
 int main(int argc, char **argv) {
