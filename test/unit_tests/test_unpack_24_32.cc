@@ -6,7 +6,7 @@
 
 #include "memory_manage.h"
 
-#define TESTSZ 250000
+static constexpr size_t kTestReps = 200000;
 
 static constexpr size_t kBitsPerByte = 8;
 static constexpr size_t kPackedBits = 24;
@@ -20,12 +20,21 @@ static constexpr int8_t kQ = 6;
 
 // map bytes into position
 const static __m256i bytegrouping =
-  _mm256_setr_epi8(kI, kS, kS, kQ,  kI + 3, kS + 3, kS + 3,kQ + 3,  kI + 6,kS + 6, kS + 6,kQ +6,  kI + 9, kS + 9, kS + 9, kQ + 9,
-                    kI + 12, kS + 12, kS + 12, kQ + 12,  kI + 15, kS + 15, kS + 15, kQ + 15,   kI + 18, kS + 18, kS + 18, kQ + 18,   kI + 21, kS + 21, kS + 21, kQ + 21);
+  _mm256_setr_epi8(kI, kS, kS, kQ,
+                   kI + 3, kS + 3, kS + 3,kQ + 3,
+                   kI + 6,kS + 6, kS + 6,kQ +6,
+                   kI + 9, kS + 9, kS + 9, kQ + 9,
+                   kI + 12, kS + 12, kS + 12, kQ + 12,
+                   kI + 15, kS + 15, kS + 15, kQ + 15,
+                   kI + 18, kS + 18, kS + 18, kQ + 18, 
+                   kI + 21, kS + 21, kS + 21, kQ + 21);
 
 
 /*
- * the new way
+ * Unpacking using avx2 instructions
+ * packed    - values to unpack
+ * unpacked  - memory to place unpacked result. Must be 32 Byte aligned
+ * to_unpack - number of values to unpack.  Must be multiple of 24 Values
  */
 void unpack24_32_avx2(uint8_t *packed, __m256i *unpacked, size_t to_unpack) {
   assert(to_unpack % kBytesPerAvx2 == 0);
@@ -48,7 +57,10 @@ void unpack24_32_avx2(uint8_t *packed, __m256i *unpacked, size_t to_unpack) {
 }
 
 /*
- * Current way of unpacking
+ * Naive unpacking
+ * packed    - values to unpack
+ * unpacked  - memory to place unpacked result
+ * to_unpack - number of values to unpack
  */
 void unpack24_32_naive(const uint8_t *packed, int16_t *unpacked, 
                        size_t to_unpack) {
@@ -68,48 +80,35 @@ void unpack24_32_naive(const uint8_t *packed, int16_t *unpacked,
 /*
  * Unit tests input values
  */
-static constexpr size_t kSpeedIterations = 10000 * kBytesPerAvx2;
-//24->34 == 3->4 (bits to bits == byes to bytes)
+static constexpr size_t kSpeedIterations = kTestReps * kBytesPerAvx2;
+static constexpr size_t kMaxCorrectnessCycles = 100;
 static constexpr size_t kPackedSizeMinBytes = 3;
 static constexpr size_t kUnpackedSizeMinBytes = 4;
 static constexpr size_t output_bytes_per_cycle = kBytesPerAvx2 * 
                                                     kUnpackedSizeMinBytes / 
                                                     kPackedSizeMinBytes;
+const size_t result_size_bytes = kSpeedIterations * kUnpackedSizeMinBytes;
+const size_t speed_input_bytes = kSpeedIterations * kPackedSizeMinBytes;
 
 int16_t *truth_result;
 int16_t *function_result;
 uint8_t *speed_packed_input;
+int16_t *speed_result;
 
 uint8_t random_one[kBytesPerAvx2];
 uint8_t zeros[kBytesPerAvx2];
 uint8_t uniform[kBytesPerAvx2];
 uint8_t three_cycles[kBytesPerAvx2 * 3];
 uint8_t hundred_cycles[kBytesPerAvx2 * 100];
-uint8_t speed_test[24 * TESTSZ];
-int16_t speed_ref[16 * TESTSZ];
 
 TEST (Performance, CurrentImplementation) {
-  //uint16_t *ret_n = (uint16_t*) malloc(32 * TESTSZ);
-  int16_t ret_n[16 * TESTSZ];
-  unpack24_32_naive(speed_test, ret_n, sizeof(speed_test));
-  unpack24_32_naive(speed_test, ret_n, sizeof(speed_test));
-  unpack24_32_naive(speed_test, ret_n, sizeof(speed_test));
-  unpack24_32_naive(speed_test, ret_n, sizeof(speed_test));
-  
-  ASSERT_EQ(0, 0); 
+  unpack24_32_naive(speed_packed_input, speed_result, 
+                    speed_input_bytes);
 }
 
 TEST (Performance, SIMDImplementation) {
-  // __m256i *ret_t;
-  // if ((ret_t = (__m256i*) malloc(32 * TESTSZ)) == NULL) {
-  //   printf("malloc fail\n");
-  // }
-  __m256i ret_t[TESTSZ];
-  unpack24_32_avx2(speed_test, ret_t, sizeof(speed_test));
-  unpack24_32_avx2(speed_test, ret_t, sizeof(speed_test));
-  unpack24_32_avx2(speed_test, ret_t, sizeof(speed_test));
-  unpack24_32_avx2(speed_test, ret_t, sizeof(speed_test));
-  ASSERT_EQ(0, 0);
+  unpack24_32_avx2(speed_packed_input, reinterpret_cast<__m256i*>(speed_result), 
+                   speed_input_bytes);
 }
 
 TEST (Correctness, OneCycleRandom) {
@@ -145,7 +144,7 @@ TEST (Correctness, ThreeCyclesRandom) {
   unpack24_32_avx2(three_cycles, reinterpret_cast<__m256i*>(function_result), 
                    kBytesPerAvx2);
 
-  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
+  ASSERT_EQ(0, memcmp(truth_result, function_result, 3 * output_bytes));
 }
 
 TEST (Correctness, 100CyclesRandom) {
@@ -154,48 +153,59 @@ TEST (Correctness, 100CyclesRandom) {
   unpack24_32_avx2(hundred_cycles, reinterpret_cast<__m256i*>(function_result), 
                    kBytesPerAvx2);
 
-  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
+  ASSERT_EQ(0, memcmp(truth_result, function_result, 100 * output_bytes));
 }
 
 void setup() {
-  const size_t result_size_bytes = kSpeedIterations * kUnpackedSizeMinBytes;
-  const size_t speed_input_bytes = kSpeedIterations * kPackedSizeMinBytes;
   truth_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
       Agora_memory::Alignment_t::kAlign64, result_size_bytes));
 
   function_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
       Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+  
+  speed_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+  
+  speed_packed_input = static_cast<uint8_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, speed_input_bytes));
 
 
-  for (size_t i = 0 ; i < sizeof(random_one); i++) {
+  for (size_t i = 0 ; i < kBytesPerAvx2; i++) {
     random_one[i] = rand() % 100;
   }
 
-  for (size_t i = 0 ; i < sizeof(zeros); i++) {
+  for (size_t i = 0 ; i < kBytesPerAvx2; i++) {
     zeros[i] = 0;
   }
 
-  for (size_t i = 0 ; i < sizeof(uniform); i++) {
+  for (size_t i = 0 ; i < kBytesPerAvx2; i++) {
     uniform[i] = 0xBB;
   }
 
-  for (size_t i = 0 ; i < sizeof(three_cycles); i++) {
+  for (size_t i = 0 ; i < 3 * kBytesPerAvx2; i++) {
     three_cycles[i] = static_cast<uint8_t>(rand() % 100);
   }
 
-  for (size_t i = 0; i < sizeof(hundred_cycles); i++) {
+  for (size_t i = 0; i < 100 * kBytesPerAvx2; i++) {
     hundred_cycles[i] = static_cast<uint8_t>(rand() % 100);
   }
 
-  for (size_t i = 0; i < sizeof(speed_test); i++) {
-    speed_test[i] = static_cast<uint8_t>(rand() % 100);
+  for (size_t i = 0; i < speed_input_bytes; i++) {
+    speed_packed_input[i] = static_cast<uint8_t>(rand() % 100);
   }
+}
 
-  unpack24_32_naive(speed_test, speed_ref, sizeof(speed_test));
+void teardown() {
+  free(truth_result);
+  free(function_result);
+  free(speed_result);
+  free(speed_packed_input);
 }
 
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   setup();
-  return RUN_ALL_TESTS();
+  int ret = RUN_ALL_TESTS();
+  teardown();
+  return ret;
 }
