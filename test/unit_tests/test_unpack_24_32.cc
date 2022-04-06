@@ -6,7 +6,7 @@
 
 #include "memory_manage.h"
 
-static constexpr size_t kTestReps = 200000;
+static constexpr size_t kTestReps = 5000000;
 
 static constexpr size_t kBitsPerByte = 8;
 static constexpr size_t kPackedBits = 24;
@@ -77,6 +77,48 @@ void unpack24_32_naive(const uint8_t *packed, int16_t *unpacked,
   }
 }
 
+const int8_t a = 1;
+const int8_t b = 2;
+const int8_t c = 3;
+const int8_t d = 0;
+const int8_t e = 1;
+uint8_t g1[32] = {a, b, c, a + 4, b + 4, c + 4, a + 8, b + 8, c + 8, a + 12, b + 12, c + 12, 0x80, 0x80, 0x80, 0x80, a, b, c, a + 4, b + 4, c + 4, a + 8, b + 8, c + 8, a + 12, b + 12, c + 12, 0x80, 0x80, 0x80, 0x80};
+uint8_t g2[32] = {d, e, 0x80, d + 4, e + 4, 0x80, d + 8, e + 8, 0x80, d + 12, e + 12, 0x80,0x80, 0x80, 0x80, 0x80, d, e, 0x80, d + 4, e + 4, 0x80, d + 8, e + 8, 0x80, d + 12, e + 12, 0x80, 0x80, 0x80, 0x80, 0x80};
+const static __m256i *grouping1 = reinterpret_cast<const __m256i *>(g1);
+const static __m256i *grouping2 = reinterpret_cast<const __m256i *>(g2);
+const static __m256i mask = _mm256_setr_epi8(0x00, 0xF0, 0xFF, 0x00, 0xF0, 0xFF, 0x00, 0xF0, 0xFF, 0x00, 0xF0, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0xFF, 0x00, 0xF0, 0xFF, 0x00, 0xF0, 0xFF, 0x00, 0xF0, 0xFF, 0x00, 0x00, 0x00, 0x00);
+
+
+void pack(uint8_t *p, uint8_t *ret, size_t n) {
+    for (size_t i = 0; i < n / 32; i++) {
+        __m256i v = _mm256_load_si256(reinterpret_cast<const __m256i *>(&p[32 * i]));
+        __m256i shuffle1 = _mm256_shuffle_epi8(v, *grouping1);
+        __m256i shuffle2 = _mm256_shuffle_epi8(v, *grouping2);
+        __m256i shift2 = _mm256_srli_epi64(shuffle2, 4);
+        shuffle1 = _mm256_and_si256(shuffle1, mask);
+        __m256i result = _mm256_or_si256(shuffle1, shift2);
+        __m128i *hi = reinterpret_cast<__m128i *>(&result);
+        __m128i *lo = hi + 1;
+        _mm_storeu_si128(reinterpret_cast<__m128i *>(&ret[24 * i]), reinterpret_cast<__m128i>(*hi));
+        _mm_storeu_si128(reinterpret_cast<__m128i *>(&ret[24 * i + 12]), reinterpret_cast<__m128i>(*lo));
+        // ret += 24;
+        // p += 32;
+    }
+}
+
+void pack24(std::complex<int16_t>& unpacked, uint8_t *packed, size_t n)
+{
+    for (size_t i = 0; i < n / 4; i++) {
+        //0xABCD -> 0xBC
+        packed[3 * i + 0u] = static_cast<uint8_t>((static_cast<uint16_t>(unpacked.real()) >> 4u) & 0xFF);
+        //0xABCD & 0xEFGH -> 0xGA
+        packed[3 * i + 1u] = static_cast<uint8_t>((static_cast<uint16_t>(unpacked.imag()) & 0xF0)  |
+                                          (static_cast<uint16_t>(unpacked.real()) >> 12u));
+        //0xEFGH -> 0xEF
+        packed[3 * i + 2u] = static_cast<uint8_t>((static_cast<uint16_t>(unpacked.imag()) >> 8u) & 0xFF);
+    }
+}
+
 /*
  * Unit tests input values
  */
@@ -94,6 +136,9 @@ int16_t *truth_result;
 int16_t *function_result;
 uint8_t *speed_packed_input;
 int16_t *speed_result;
+int16_t *speed_result2;
+int16_t *speed_result3;
+int16_t *speed_result4;
 
 uint8_t random_one[kBytesPerAvx2];
 uint8_t zeros[kBytesPerAvx2];
@@ -101,13 +146,22 @@ uint8_t uniform[kBytesPerAvx2];
 uint8_t three_cycles[kBytesPerAvx2 * 3];
 uint8_t hundred_cycles[kBytesPerAvx2 * 100];
 
+
+TEST (Performance, packing) {
+  pack(speed_packed_input, reinterpret_cast<uint8_t*>(speed_result2), speed_input_bytes);
+}
+
+TEST (Performance, packingCurrentImplementation) {
+  pack24(reinterpret_cast<std::complex<int16_t> &>(speed_packed_input), reinterpret_cast<uint8_t*>(speed_result), speed_input_bytes);
+}
+
 TEST (Performance, CurrentImplementation) {
-  unpack24_32_naive(speed_packed_input, speed_result, 
+  unpack24_32_naive(speed_packed_input, speed_result4, 
                     speed_input_bytes);
 }
 
 TEST (Performance, SIMDImplementation) {
-  unpack24_32_avx2(speed_packed_input, reinterpret_cast<__m256i*>(speed_result), 
+  unpack24_32_avx2(speed_packed_input, reinterpret_cast<__m256i*>(speed_result3), 
                    speed_input_bytes);
 }
 
@@ -164,6 +218,12 @@ void setup() {
       Agora_memory::Alignment_t::kAlign64, result_size_bytes));
   
   speed_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+  speed_result2 = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+  speed_result3 = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+  speed_result4 = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
       Agora_memory::Alignment_t::kAlign64, result_size_bytes));
   
   speed_packed_input = static_cast<uint8_t *>(Agora_memory::PaddedAlignedAlloc(
