@@ -6,6 +6,10 @@
 
 #include "memory_manage.h"
 
+/* Order of tests matters if they are storing result in the same block of
+ *  memory.
+ */
+
 static constexpr size_t kTestReps = 5000000;
 
 static constexpr size_t kBitsPerByte = 8;
@@ -51,6 +55,7 @@ void unpack24_32_avx2(uint8_t *packed, __m256i *unpacked, size_t to_unpack) {
     const __m256i mask  = 
        _mm256_and_si256(shuffle, _mm256_set1_epi32(
           static_cast<int>(0xFFF00000)));  // mask out a nibble in the second int
+    /* This line takes a lot of time */
     _mm256_store_si256(&unpacked[i], _mm256_blend_epi16(
          shift, mask, 0b10101010));  // merge shift and mask
   }
@@ -90,20 +95,19 @@ const static __m256i mask = _mm256_setr_epi8(0x00, 0xF0, 0xFF, 0x00, 0xF0, 0xFF,
 
 
 void pack(uint8_t *p, uint8_t *ret, size_t n) {
-    for (size_t i = 0; i < n / 32; i++) {
-        __m256i v = _mm256_load_si256(reinterpret_cast<const __m256i *>(&p[32 * i]));
-        __m256i shuffle1 = _mm256_shuffle_epi8(v, *grouping1);
-        __m256i shuffle2 = _mm256_shuffle_epi8(v, *grouping2);
-        __m256i shift2 = _mm256_srli_epi64(shuffle2, 4);
-        shuffle1 = _mm256_and_si256(shuffle1, mask);
-        __m256i result = _mm256_or_si256(shuffle1, shift2);
-        __m128i *hi = reinterpret_cast<__m128i *>(&result);
-        __m128i *lo = hi + 1;
-        _mm_storeu_si128(reinterpret_cast<__m128i *>(&ret[24 * i]), reinterpret_cast<__m128i>(*hi));
-        _mm_storeu_si128(reinterpret_cast<__m128i *>(&ret[24 * i + 12]), reinterpret_cast<__m128i>(*lo));
-        // ret += 24;
-        // p += 32;
-    }
+  for (size_t i = 0; i < n / 32; i++) {
+      __m256i v = _mm256_load_si256(reinterpret_cast<const __m256i *>(&p[32 * i]));
+      __m256i shuffle1 = _mm256_shuffle_epi8(v, *grouping1);
+      __m256i shuffle2 = _mm256_shuffle_epi8(v, *grouping2);
+      __m256i shift2 = _mm256_srli_epi64(shuffle2, 4);
+      shuffle1 = _mm256_and_si256(shuffle1, mask);
+      __m256i result = _mm256_or_si256(shuffle1, shift2);
+      __m128i *hi = reinterpret_cast<__m128i *>(&result);
+      __m128i *lo = hi + 1;
+      /* These two lines takes a lot of time */
+      _mm_storeu_si128(reinterpret_cast<__m128i *>(&ret[24 * i]), reinterpret_cast<__m128i>(*hi));
+      _mm_storeu_si128(reinterpret_cast<__m128i *>(&ret[24 * i + 12]), reinterpret_cast<__m128i>(*lo));
+  }
 }
 
 void pack24(std::complex<int16_t>& unpacked, uint8_t *packed, size_t n)
