@@ -14,6 +14,8 @@
 /*
  * Unit tests input values
  */
+static constexpr size_t kTestReps = 100000;
+
 static constexpr size_t kSpeedIterations = kTestReps * kBytesPerAvx2;
 static constexpr size_t kMaxCorrectnessCycles = 100;
 static constexpr size_t kPackedSizeMinBytes = 3;
@@ -161,6 +163,8 @@ TEST (CorrectnessPack, HundredCyclesPack) {
   ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
+/* Overall Correctness Tests */
+
 TEST (CorrectnessOverall, UnpackThenPackThreeCycle) {
   const size_t output_bytes = 3 * kBytesPerAvx2;
   unpack24_32_avx2(three_cycles, reinterpret_cast<__m256i*>(function_result), 
@@ -169,6 +173,16 @@ TEST (CorrectnessOverall, UnpackThenPackThreeCycle) {
     reinterpret_cast<uint8_t *>(truth_result), 3 * kBytesUnpackedAvx2);
 
   ASSERT_EQ(0, memcmp(truth_result, three_cycles, output_bytes));
+}
+
+TEST (CorrectnessOverall, PackThenUnpackThreeCycle) {
+  const size_t output_bytes = 3 * kBytesPerAvx2;
+  pack32_24_avx2(reinterpret_cast<uint8_t *>(hundred_cycles_pack), 
+    reinterpret_cast<uint8_t *>(function_result), 3 * kBytesUnpackedAvx2);
+  unpack24_32_avx2(reinterpret_cast<uint8_t *>(function_result),
+    reinterpret_cast<__m256i*>(truth_result), 3 * kBytesPerAvx2);
+
+  ASSERT_EQ(0, memcmp(truth_result, hundred_cycles_pack, output_bytes));
 }
 
 
