@@ -35,7 +35,6 @@ int16_t *speed_result3;
 int16_t *speed_result4;
 
 /* unpacking tests inputs */
-uint8_t known_unpack[kBytesPerAvx2];
 uint8_t random_one[kBytesPerAvx2];
 uint8_t zeros[kBytesPerAvx2];
 uint8_t uniform[kBytesPerAvx2];
@@ -45,14 +44,25 @@ uint8_t hundred_cycles[kBytesPerAvx2 * 100];
 /* packing tests inputs */
 uint8_t random_one_pack[kBytesUnpackedAvx2];
 uint8_t three_cycles_pack[kBytesUnpackedAvx2 * 3];
+uint8_t hundred_cycles_pack[kBytesUnpackedAvx2 * 100];
+uint8_t known_pack[kBytesUnpackedAvx2] = 
+  {0xb0, 0xda, 0xc0, 0xef, 0xb0, 0xda, 0xc0, 0xef, 0xb0, 0xda, 0xc0, 0xef,
+   0xb0, 0xda, 0xc0, 0xef, 0xb0, 0xda, 0xc0, 0xef, 0xb0, 0xda, 0xc0, 0xef,
+   0xb0, 0xda, 0xc0, 0xef, 0xb0, 0xda, 0xc0, 0xef};
 
+uint8_t known_pack_result[kBytesPerAvx2] =
+  {0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef, 
+   0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef};
 
+/* Performance tests */
 TEST (Performance, packing) {
-  pack32_24_avx2(speed_packed_input, reinterpret_cast<uint8_t*>(speed_result2), speed_input_bytes);
+  pack32_24_avx2(speed_packed_input, reinterpret_cast<uint8_t*>(speed_result2), 
+    speed_input_bytes);
 }
 
 TEST (Performance, packingCurrentImplementation) {
-  pack32_24_naive(reinterpret_cast<std::complex<int16_t> *>(speed_packed_input), reinterpret_cast<uint8_t*>(speed_result), speed_input_bytes);
+  pack32_24_naive(reinterpret_cast<std::complex<int16_t> *>(speed_packed_input), 
+    reinterpret_cast<uint8_t*>(speed_result), speed_input_bytes);
 }
 
 TEST (Performance, CurrentImplementation) {
@@ -61,11 +71,21 @@ TEST (Performance, CurrentImplementation) {
 }
 
 TEST (Performance, SIMDImplementation) {
-  unpack24_32_avx2(speed_packed_input, reinterpret_cast<__m256i*>(speed_result3), 
-                   speed_input_bytes);
+  unpack24_32_avx2(speed_packed_input, 
+    reinterpret_cast<__m256i*>(speed_result3), speed_input_bytes);
 }
 
-TEST (Correctness, OneCycleRandomUnpack) {
+/* Unpacking Tests */
+
+TEST (CorrectnessUnpack, KnownUnpack) {
+  const size_t output_bytes = output_bytes_per_cycle_unpack;
+  unpack24_32_avx2(known_pack_result, 
+    reinterpret_cast<__m256i*>(function_result), kBytesPerAvx2);
+
+  ASSERT_EQ(0, memcmp(known_pack, function_result, output_bytes));
+}
+
+TEST (CorrectnessUnpack, OneCycleRandomUnpack) {
   const size_t output_bytes = output_bytes_per_cycle_unpack;
   unpack24_32_naive(random_one, truth_result, kBytesPerAvx2);
   unpack24_32_avx2(random_one, reinterpret_cast<__m256i*>(function_result), 
@@ -74,7 +94,7 @@ TEST (Correctness, OneCycleRandomUnpack) {
   ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
-TEST (Correctness, OneCycleZerosUnpack) {
+TEST (CorrectnessUnpack, OneCycleZerosUnpack) {
   const size_t output_bytes = output_bytes_per_cycle_unpack;
   unpack24_32_naive(zeros, truth_result, kBytesPerAvx2);
   unpack24_32_avx2(zeros, reinterpret_cast<__m256i*>(function_result), 
@@ -83,7 +103,7 @@ TEST (Correctness, OneCycleZerosUnpack) {
   ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
-TEST (Correctness, OneCylceUniformUnpack) {
+TEST (CorrectnessUnpack, OneCylceUniformUnpack) {
   const size_t output_bytes = output_bytes_per_cycle_unpack;
   unpack24_32_naive(uniform, truth_result, kBytesPerAvx2);
   unpack24_32_avx2(uniform, reinterpret_cast<__m256i*>(function_result), 
@@ -92,7 +112,7 @@ TEST (Correctness, OneCylceUniformUnpack) {
   ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
 }
 
-TEST (Correctness, ThreeCyclesRandomUnpack) {
+TEST (CorrectnessUnpack, ThreeCyclesRandomUnpack) {
   const size_t output_bytes = 3 * output_bytes_per_cycle_unpack;
   unpack24_32_naive(three_cycles, truth_result, kBytesPerAvx2);
   unpack24_32_avx2(three_cycles, reinterpret_cast<__m256i*>(function_result), 
@@ -101,7 +121,7 @@ TEST (Correctness, ThreeCyclesRandomUnpack) {
   ASSERT_EQ(0, memcmp(truth_result, function_result, 3 * output_bytes));
 }
 
-TEST (Correctness, 100CyclesRandomUnpack) {
+TEST (CorrectnessUnpack, 100CyclesRandomUnpack) {
   const size_t output_bytes = 100 * output_bytes_per_cycle_unpack;
   unpack24_32_naive(hundred_cycles, truth_result, kBytesPerAvx2);
   unpack24_32_avx2(hundred_cycles, reinterpret_cast<__m256i*>(function_result), 
@@ -110,22 +130,47 @@ TEST (Correctness, 100CyclesRandomUnpack) {
   ASSERT_EQ(0, memcmp(truth_result, function_result, 100 * output_bytes));
 }
 
-TEST (Correctness, UnpackThenPack) {
+/* Packing Tests */
+
+TEST (CorrectnessPack, KnownPack) {
+  const size_t output_bytes = output_bytes_per_cycle_pack;
+  pack32_24_avx2(known_pack, reinterpret_cast<uint8_t *>(function_result), 
+    kBytesUnpackedAvx2);
+
+  ASSERT_EQ(0, memcmp(known_pack_result, function_result, output_bytes));
+}
+
+TEST (CorrectnessPack, OneCycleRandomPack) {
+  const size_t output_bytes = output_bytes_per_cycle_pack;
+  pack32_24_naive(reinterpret_cast<std::complex<int16_t> *>(random_one_pack), 
+    reinterpret_cast<uint8_t *>(truth_result), kBytesUnpackedAvx2);
+  pack32_24_avx2(random_one_pack, reinterpret_cast<uint8_t *>(function_result), 
+    kBytesUnpackedAvx2);
+
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
+}
+
+TEST (CorrectnessPack, HundredCyclesPack) {
+  const size_t output_bytes = 100 * output_bytes_per_cycle_pack;
+  pack32_24_naive(
+    reinterpret_cast<std::complex<int16_t> *>(hundred_cycles_pack), 
+    reinterpret_cast<uint8_t *>(truth_result), 100 * kBytesUnpackedAvx2);
+  pack32_24_avx2(hundred_cycles_pack,
+    reinterpret_cast<uint8_t *>(function_result), 100 * kBytesUnpackedAvx2);
+
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
+}
+
+TEST (CorrectnessOverall, UnpackThenPackThreeCycle) {
   const size_t output_bytes = 3 * kBytesPerAvx2;
   unpack24_32_avx2(three_cycles, reinterpret_cast<__m256i*>(function_result), 
                    3 * kBytesPerAvx2);
-  pack32_24_avx2(reinterpret_cast<uint8_t *>(function_result), reinterpret_cast<uint8_t *>(truth_result), 3 * kBytesUnpackedAvx2);
+  pack32_24_avx2(reinterpret_cast<uint8_t *>(function_result), 
+    reinterpret_cast<uint8_t *>(truth_result), 3 * kBytesUnpackedAvx2);
 
   ASSERT_EQ(0, memcmp(truth_result, three_cycles, output_bytes));
 }
 
-TEST (Correctness, OneCycleRandomPack) {
-  const size_t output_bytes = output_bytes_per_cycle_pack;
-  pack32_24_naive(reinterpret_cast<std::complex<int16_t> *>(random_one_pack), reinterpret_cast<uint8_t *>(truth_result), kBytesUnpackedAvx2);
-  pack32_24_avx2(random_one_pack, reinterpret_cast<uint8_t *>(function_result), kBytesUnpackedAvx2);
-
-  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
-}
 
 void setup() {
   truth_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
@@ -176,6 +221,14 @@ void setup() {
       random_one_pack[i] = static_cast<uint8_t>(rand() % 100) & 0xF0;
     } else {
       random_one_pack[i] = rand() % 100;
+    }
+  }
+  
+  for (size_t i = 0 ; i < kBytesUnpackedAvx2 * 100; i++) {
+    if (i % 4 == 0 || i % 4 == 2) {
+      hundred_cycles_pack[i] = static_cast<uint8_t>(rand() % 100) & 0xF0;
+    } else {
+      hundred_cycles_pack[i] = rand() % 100;
     }
   }
 }

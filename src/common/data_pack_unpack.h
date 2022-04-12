@@ -17,6 +17,8 @@ static constexpr size_t kUnPackedBytesDiv2 = 2;
 
 
 void unpack24_32_avx2(uint8_t *packed, __m256i *unpacked, size_t to_unpack);
-void unpack24_32_naive(const uint8_t *packed, int16_t *unpacked, size_t to_unpack);
+void unpack24_32_naive(
+  const uint8_t *packed, int16_t *unpacked, size_t to_unpack);
 void pack32_24_avx2(uint8_t *unpacked, uint8_t *packed, size_t to_pack);
-void pack32_24_naive(std::complex<int16_t>* unpacked, uint8_t *packed, size_t to_pack);
+void pack32_24_naive(
+  std::complex<int16_t>* unpacked, uint8_t *packed, size_t to_pack);
