@@ -248,7 +248,7 @@ set(COMMON_SOURCES
   src/common/crc.cc
   src/common/memory_manage.cc
   src/common/scrambler.cc
-  #src/common/data_pack_unpack.cc
+  src/common/data_pack_unpack.cc
   src/encoder/cyclic_shift.cc
   src/encoder/encoder.cc
   src/encoder/iobuffer.cc)
