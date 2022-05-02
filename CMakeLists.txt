@@ -248,6 +248,7 @@ set(COMMON_SOURCES
   src/common/crc.cc
   src/common/memory_manage.cc
   src/common/scrambler.cc
+  src/common/data_pack_unpack.cc
   src/encoder/cyclic_shift.cc
   src/encoder/encoder.cc
   src/encoder/iobuffer.cc)
@@ -382,7 +383,7 @@ endforeach()
 set(UNIT_TESTS test_datatype_conversion test_udp_client_server
   test_concurrent_queue test_zf test_zf_threaded test_demul_threaded 
   test_ptr_grid test_avx512_complex_mul test_scrambler
-  test_256qam_demod test_unpack_24_32)
+  test_256qam_demod test_pack_unpack_24_32)
 
 foreach(test_name IN LISTS UNIT_TESTS)
   add_executable(${test_name}
