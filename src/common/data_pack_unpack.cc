@@ -108,9 +108,9 @@ void unpack24_32_naive(const uint8_t *packed, int16_t *unpacked,
     const size_t packed_index = kPackedBytes * i;
     const size_t unpacked_index = kUnPackedBytesDiv2 * i;
 
-    const uint16_t i_lsb = uint16_t(packed[packed_index]);
-    const uint16_t split = uint16_t(packed[packed_index + 1u]);
-    const uint16_t q_msb = uint16_t(packed[packed_index + 2u]);
+    const auto i_lsb = uint16_t(packed[packed_index]);
+    const auto split = uint16_t(packed[packed_index + 1u]);
+    const auto q_msb = uint16_t(packed[packed_index + 2u]);
     unpacked[unpacked_index] = int16_t((split << 12u) | (i_lsb << 4u));
     unpacked[unpacked_index + 1] = int16_t((q_msb << 8u) | (split & 0xf0));
   }
@@ -128,13 +128,19 @@ void unpack24_32_d_naive(const uint8_t *packed, int16_t *unpacked1,
   assert(to_unpack % 3 == 0);
   for (size_t i = 0u; i < to_unpack / 3; i++) {
     const size_t packed_index = kPackedBytes * i;
-    const size_t unpacked_index = i;
+    const size_t unpacked_index = i / 2 * 2;
 
-    const uint16_t i_lsb = uint16_t(packed[packed_index]);
-    const uint16_t split = uint16_t(packed[packed_index + 1u]);
-    const uint16_t q_msb = uint16_t(packed[packed_index + 2u]);
-    unpacked1[unpacked_index] = int16_t((split << 12u) | (i_lsb << 4u));
-    unpacked2[unpacked_index] = int16_t((q_msb << 8u) | (split & 0xf0));
+    const auto i_lsb = uint16_t(packed[packed_index]);
+    const auto split = uint16_t(packed[packed_index + 1u]);
+    const auto q_msb = uint16_t(packed[packed_index + 2u]);
+    if (i % 2 == 0) {
+      unpacked1[unpacked_index] = int16_t((split << 12u) | (i_lsb << 4u));
+      unpacked1[unpacked_index + 1] = int16_t((q_msb << 8u) | (split & 0xf0));
+    } else {
+      unpacked2[unpacked_index] = int16_t((split << 12u) | (i_lsb << 4u));
+      unpacked2[unpacked_index + 1] = int16_t((q_msb << 8u) | (split & 0xf0));
+    }
+
   }
 }
 
@@ -178,7 +184,7 @@ void pack32_24_avx2(uint8_t *unpacked, uint8_t *packed, size_t to_pack) {
       __m256i shift2 = _mm256_srli_epi64(shuffle2, 4);
       shuffle1 = _mm256_and_si256(shuffle1, mask);
       __m256i result = _mm256_or_si256(shuffle1, shift2);
-      __m128i *hi = reinterpret_cast<__m128i *>(&result);
+      auto *hi = reinterpret_cast<__m128i *>(&result);
       __m128i *lo = hi + 1;
       /* These two lines take a lot of time */
       _mm_storeu_si128(reinterpret_cast<__m128i *>(&packed[24 * i]), 

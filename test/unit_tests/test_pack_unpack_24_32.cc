@@ -142,8 +142,33 @@ TEST (CorrectnessUnpackTwoDest, OneCycleRandomUnpack) {
                      reinterpret_cast<__m128i*>(function_result_alt),
                      kBytesPerAvx2);
 
-  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
-  ASSERT_EQ(0, memcmp(truth_result_alt, function_result_alt, output_bytes));
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes / 2));
+  ASSERT_EQ(0, memcmp(truth_result_alt, function_result_alt, output_bytes / 2));
+}
+
+TEST (CorrectnessUnpackTwoDest, ThreeCyclesRandomUnpack) {
+  const size_t output_bytes = 3 * output_bytes_per_cycle_unpack;
+  unpack24_32_d_naive(three_cycles, truth_result, truth_result_alt,
+                    kBytesPerAvx2);
+  unpack24_32_avx2_d(three_cycles, reinterpret_cast<__m128i*>(function_result),
+                     reinterpret_cast<__m128i*>(function_result_alt),
+                     kBytesPerAvx2);
+
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes / 2));
+  ASSERT_EQ(0, memcmp(truth_result_alt, function_result_alt, output_bytes / 2));
+}
+
+TEST (CorrectnessUnpackTwoDest, 100CyclesRandomUnpack) {
+  const size_t output_bytes = 100 * output_bytes_per_cycle_unpack;
+  unpack24_32_d_naive(hundred_cycles, truth_result, truth_result_alt,
+                      kBytesPerAvx2);
+  unpack24_32_avx2_d(hundred_cycles,
+                     reinterpret_cast<__m128i*>(function_result),
+                     reinterpret_cast<__m128i*>(function_result_alt),
+                     kBytesPerAvx2);
+
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes / 2));
+  ASSERT_EQ(0, memcmp(truth_result_alt, function_result_alt, output_bytes / 2));
 }
 
 /* Packing Tests */
