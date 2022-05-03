@@ -30,6 +30,26 @@ void unpack24_32_naive(
   const uint8_t *packed, int16_t *unpacked, size_t to_unpack);
 
 /*
+ * Unpacking using avx2 instructions with two destinations
+ * packed    - values to unpack
+ * unpacked1  - memory to place first unpacked result. Must be 32 Byte aligned
+ * unpacked2  - memory to place second unpacked result. Must be 32 Byte aligned
+ * to_unpack - number of values to unpack.  Must be multiple of 24 Values
+ */
+void unpack24_32_avx2_d(uint8_t *packed, __m128i *unpacked1,
+                        __m128i *unpacked2, size_t to_unpack);
+
+/*
+ * Naive unpacking with two destinations
+ * packed    - values to unpack
+ * unpacked1  - memory to place first unpacked result
+ * unpacked2  - memory to place second unpacked result
+ * to_unpack - number of values to unpack
+ */
+void unpack24_32_d_naive(const uint8_t *packed, int16_t *unpacked1,
+                         int16_t *unpacked2, size_t to_unpack);
+
+/*
  * Packing using avx2 instructions
  * unpacked  - values to pack
  * packed    - memory to place packed result.

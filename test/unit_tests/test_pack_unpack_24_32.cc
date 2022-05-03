@@ -29,7 +29,9 @@ const size_t speed_input_bytes = kSpeedIterations * kPackedSizeMinBytes;
 
 /* test results storage */
 int16_t *truth_result;
+int16_t *truth_result_alt;
 int16_t *function_result;
+int16_t *function_result_alt;
 uint8_t *speed_packed_input;
 int16_t *speed_result;
 int16_t *speed_result2;
@@ -132,6 +134,18 @@ TEST (CorrectnessUnpack, 100CyclesRandomUnpack) {
   ASSERT_EQ(0, memcmp(truth_result, function_result, 100 * output_bytes));
 }
 
+TEST (CorrectnessUnpackTwoDest, OneCycleRandomUnpack) {
+  const size_t output_bytes = output_bytes_per_cycle_unpack;
+  unpack24_32_d_naive(random_one, truth_result, truth_result_alt, 
+                      kBytesPerAvx2);
+  unpack24_32_avx2_d(random_one, reinterpret_cast<__m128i*>(function_result), 
+                     reinterpret_cast<__m128i*>(function_result_alt),
+                     kBytesPerAvx2);
+
+  ASSERT_EQ(0, memcmp(truth_result, function_result, output_bytes));
+  ASSERT_EQ(0, memcmp(truth_result_alt, function_result_alt, output_bytes));
+}
+
 /* Packing Tests */
 
 TEST (CorrectnessPack, KnownPack) {
@@ -189,8 +203,12 @@ TEST (CorrectnessOverall, PackThenUnpackThreeCycle) {
 void setup() {
   truth_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
       Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+  truth_result_alt = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, result_size_bytes));
 
   function_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
+      Agora_memory::Alignment_t::kAlign64, result_size_bytes));
+  function_result_alt = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
       Agora_memory::Alignment_t::kAlign64, result_size_bytes));
   
   speed_result = static_cast<int16_t *>(Agora_memory::PaddedAlignedAlloc(
